@@ -1,8 +1,9 @@
 package org.excitinglab.bronze.config
 
+import org.excitinglab.bronze.apis.{BaseOutput, BaseStaticInput, BaseStreamingInput, BaseTransform, Plugin}
+
 import java.io.File
 import java.util.ServiceLoader
-
 import scala.language.reflectiveCalls
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -48,10 +49,113 @@ class ConfigBuilder(configFile: String) {
    * */
   def checkConfig: Unit = {
     val sparkConfig = this.getSparkConfigs
+    val staticInput = this.createStaticInputs("batch")
+    val streamingInputs = this.createStreamingInputs("streaming")
+    val outputs = this.createOutputs[BaseOutput]("batch")
+    val transforms = this.createTransforms
   }
 
   def getSparkConfigs: Config = {
     config.getConfig("spark")
+  }
+
+  def createTransforms: List[BaseTransform] = {
+
+    var filterList = List[BaseTransform]()
+    config
+      .getConfigList("filter")
+      .foreach(plugin => {
+        val className = buildClassFullQualifier(plugin.getString(ConfigBuilder.PluginNameKey), "filter")
+
+        val obj = Class
+          .forName(className)
+          .newInstance()
+          .asInstanceOf[BaseTransform]
+
+        obj.setConfig(plugin)
+
+        filterList = filterList :+ obj
+      })
+
+    filterList
+  }
+
+  def createStreamingInputs(engine: String): List[BaseStreamingInput[Any]] = {
+
+    var inputList = List[BaseStreamingInput[Any]]()
+    config
+      .getConfigList("input")
+      .foreach(plugin => {
+        val className = buildClassFullQualifier(plugin.getString(ConfigBuilder.PluginNameKey), "input", engine)
+
+        val obj = Class
+          .forName(className)
+          .newInstance()
+
+        obj match {
+          case inputObject: BaseStreamingInput[Any] => {
+            val input = inputObject.asInstanceOf[BaseStreamingInput[Any]]
+            input.setConfig(plugin)
+            inputList = inputList :+ input
+          }
+          case _ => // do nothing
+        }
+      })
+
+    inputList
+  }
+
+  def createStaticInputs(engine: String): List[BaseStaticInput] = {
+
+    var inputList = List[BaseStaticInput]()
+    config
+      .getConfigList("input")
+      .foreach(plugin => {
+        val className = buildClassFullQualifier(plugin.getString(ConfigBuilder.PluginNameKey), "input", engine)
+
+        val obj = Class
+          .forName(className)
+          .newInstance()
+
+        obj match {
+          case inputObject: BaseStaticInput => {
+            val input = inputObject.asInstanceOf[BaseStaticInput]
+            input.setConfig(plugin)
+            inputList = inputList :+ input
+          }
+          case _ => // do nothing
+        }
+      })
+
+    inputList
+  }
+
+  def createOutputs[T <: Plugin](engine: String): List[T] = {
+
+    var outputList = List[T]()
+    config
+      .getConfigList("output")
+      .foreach(plugin => {
+
+        val className = engine match {
+          case "batch" | "sparkstreaming" =>
+            buildClassFullQualifier(plugin.getString(ConfigBuilder.PluginNameKey), "output", "batch")
+          case "structuredstreaming" =>
+            buildClassFullQualifier(plugin.getString(ConfigBuilder.PluginNameKey), "output", engine)
+
+        }
+
+        val obj = Class
+          .forName(className)
+          .newInstance()
+          .asInstanceOf[T]
+
+        obj.setConfig(plugin)
+
+        outputList = outputList :+ obj
+      })
+
+    outputList
   }
 
   private def getInputType(name: String, engine: String): String = {
@@ -84,7 +188,11 @@ class ConfigBuilder(configFile: String) {
         case "output" => ConfigBuilder.OutputPackage + "." + engine
       }
 
-      val services: Iterable[_] = Seq()
+      val services: Iterable[Plugin] =
+        (ServiceLoader load classOf[BaseStaticInput]).asScala ++
+          (ServiceLoader load classOf[BaseStreamingInput[Any]]).asScala ++
+          (ServiceLoader load classOf[BaseTransform]).asScala ++
+          (ServiceLoader load classOf[BaseOutput]).asScala
 
       var classFound = false
       breakable {
