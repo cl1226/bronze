@@ -17,6 +17,7 @@ object CommandLineUtils {
       .text("spark deploy mode")
     opt[String]('m', "master")
       .required()
+      .action((x, c) => c.copy(master = x))
       .text("spark master")
     opt[String]('i', "variable")
       .optional()

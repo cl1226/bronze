@@ -1,0 +1,2 @@
+org.excitinglab.bronze.core.output.batch.Stdout
+org.excitinglab.bronze.core.output.batch.Mysql

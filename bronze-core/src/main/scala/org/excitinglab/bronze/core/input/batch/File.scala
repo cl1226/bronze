@@ -1,10 +1,8 @@
-package org.excitinglab.bronze.core.input
+package org.excitinglab.bronze.core.input.batch
 
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.excitinglab.bronze.apis.BaseStaticInput
 import org.excitinglab.bronze.config.{Config, ConfigFactory}
-
-import scala.collection.JavaConverters._
 
 class File extends BaseStaticInput {
 
@@ -28,12 +26,7 @@ class File extends BaseStaticInput {
   }
 
   protected def fileReader(spark: SparkSession, path: String): Dataset[Row] = {
-    println(s"[INFO] 输入数据源 [${config.getString("type")}] properties: ")
-    config.entrySet().asScala.foreach(entry => {
-      println("\t" + entry.getKey + " = " + entry.getValue)
-    })
-
-    val format = config.getString("dataFormatType").toLowerCase()
+    val format = config.getString("format").toLowerCase()
     val reader = spark.read.format(format)
 
     format match {

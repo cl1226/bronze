@@ -1,12 +1,13 @@
 package org.excitinglab.bronze
 
+import org.apache.commons.lang3.StringUtils
 import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.excitinglab.bronze.config._
 import org.apache.hadoop.fs.Path
-import org.excitinglab.bronze.apis.{BaseOutput, BaseStaticInput, BaseTransform, Plugin}
-import org.excitinglab.bronze.utils.CompressionUtils
+import org.excitinglab.bronze.apis.{BaseMl, BaseOutput, BaseStaticInput, BaseTransform, Plugin}
+import org.excitinglab.bronze.utils.{AsciiArt, CompressionUtils}
 
 import java.io.File
 import scala.collection.JavaConversions._
@@ -15,12 +16,14 @@ import scala.util.{Failure, Success, Try}
 object Bronze extends Logging {
 
   var viewTableMap: Map[String, String] = Map[String, String]()
+  var master: String = _
 
   def main(args: Array[String]): Unit = {
 
     CommandLineUtils.parser.parse(args, CommandLineArgs()) match {
       case Some(cmdArgs) => {
         Common.setDeployMode(cmdArgs.deployMode)
+        master = cmdArgs.master
         val configFilePath = getConfigFilePath(cmdArgs)
 
         cmdArgs.testConfig match {
@@ -77,19 +80,26 @@ object Bronze extends Logging {
       println("\t" + key + " => " + value)
     })
 
+    StringUtils.isNotBlank(master) match {
+      case true => sparkConf.setMaster(master)
+      case false =>
+    }
+
+
     val sparkSession = SparkSession.builder.config(sparkConf).getOrCreate()
 
     val staticInputs = configBuilder.createStaticInputs("batch")
     val streamingInputs = configBuilder.createStreamingInputs("batch")
     val transforms = configBuilder.createTransforms
+    val mls = configBuilder.createMls
     val outputs = configBuilder.createOutputs[BaseOutput]("batch")
 
-    baseCheckConfig(staticInputs, streamingInputs, transforms, outputs)
+    baseCheckConfig(staticInputs, streamingInputs, transforms, mls, outputs)
 
     if (streamingInputs.nonEmpty) {
-      streamingProcessing(sparkSession, configBuilder, staticInputs, streamingInputs, transforms, outputs)
+//      streamingProcessing(sparkSession, configBuilder, staticInputs, streamingInputs, transforms, outputs)
     } else {
-      batchProcessing(sparkSession, configBuilder, staticInputs, transforms, outputs)
+      batchProcessing(sparkSession, configBuilder, staticInputs, transforms, mls, outputs)
     }
 
   }
@@ -101,21 +111,22 @@ object Bronze extends Logging {
                                sparkSession: SparkSession,
                                configBuilder: ConfigBuilder,
                                staticInputs: List[BaseStaticInput],
-                               filters: List[BaseTransform],
+                               transforms: List[BaseTransform],
+                               mls: List[BaseMl],
                                outputs: List[BaseOutput]): Unit = {
 
-    basePrepare(sparkSession, staticInputs, filters, outputs)
+    basePrepare(sparkSession, staticInputs, transforms, mls, outputs)
 
     // let static input register as table for later use if needed
     val headDs = registerInputTempViewWithHead(staticInputs, sparkSession)
 
     // when you see this ASCII logo, waterdrop is really started.
-    showWaterdropAsciiLogo()
+    showBronzeAsciiLogo()
 
     if (staticInputs.nonEmpty) {
       var ds = headDs
 
-      for (f <- filters) {
+      for (f <- transforms) {
         // WARN: we do not check whether dataset is empty or not
         // because take(n)(limit in logic plan) do not support pushdown in spark sql
         // To address the limit n problem, we can implemented in datasource code(such as hbase datasource)
@@ -139,7 +150,11 @@ object Bronze extends Logging {
     }
   }
 
-  private[waterdrop] def filterProcess(
+  private[bronze] def showBronzeAsciiLogo(): Unit = {
+    AsciiArt.printAsciiArt("Bronze")
+  }
+
+  private[bronze] def filterProcess(
                                         sparkSession: SparkSession,
                                         filter: BaseTransform,
                                         ds: Dataset[Row]): Dataset[Row] = {
@@ -155,7 +170,7 @@ object Bronze extends Logging {
     filter.process(sparkSession, fromDs)
   }
 
-  private[waterdrop] def outputProcess(sparkSession: SparkSession, output: BaseOutput, ds: Dataset[Row]): Unit = {
+  private[bronze] def outputProcess(sparkSession: SparkSession, output: BaseOutput, ds: Dataset[Row]): Unit = {
     val config = output.getConfig()
     val fromDs = config.hasPath("source_table_name") match {
       case true => {
@@ -280,7 +295,7 @@ object Bronze extends Logging {
     deployModeCheck()
   }
 
-  private[waterdrop] def deployModeCheck(): Unit = {
+  private[bronze] def deployModeCheck(): Unit = {
     Common.getDeployMode match {
       case Some(m) => {
         if (m.equals("cluster")) {

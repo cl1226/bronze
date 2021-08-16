@@ -1,21 +1,16 @@
-package org.excitinglab.bronze.core.output
+package org.excitinglab.bronze.core.output.batch
 
 import org.apache.spark.sql.{Dataset, Row}
 import org.excitinglab.bronze.apis.BaseOutput
 import org.excitinglab.bronze.config.{Config, ConfigFactory}
 
 import java.util.Properties
-import scala.collection.JavaConverters._
 
 class Mysql extends BaseOutput {
 
   var config: Config = ConfigFactory.empty()
 
   override def process(df: Dataset[Row]): Unit = {
-    println(s"[INFO] 转换算子 [${config.getString("type")}] properties: ")
-    config.entrySet().asScala.foreach(entry => {
-      println("\t" + entry.getKey + " = " + entry.getValue)
-    })
     val prop = new Properties()
     prop.setProperty("driver", config.getString("driver"))
     prop.setProperty("user", config.getString("user"))

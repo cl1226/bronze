@@ -4,18 +4,11 @@ import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.excitinglab.bronze.apis.BaseTransform
 import org.excitinglab.bronze.config.{Config, ConfigFactory}
 
-import scala.collection.JavaConverters._
-
 class Filter extends BaseTransform {
 
   var config: Config = ConfigFactory.empty()
 
   override def process(spark: SparkSession, df: Dataset[Row]): Dataset[Row] = {
-    println(s"[INFO] 转换算子 [${config.getString("type")}] properties: ")
-    config.entrySet().asScala.foreach(entry => {
-      println("\t" + entry.getKey + " = " + entry.getValue)
-    })
-
     val condition = config.getString("where")
     df.createOrReplaceTempView("bronze_tmp_filter")
     val res = spark.sql(s"select * from bronze_tmp_filter where ${condition}")

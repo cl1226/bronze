@@ -1,4 +1,5 @@
-package org.excitinglab.bronze.core.input
+package org.excitinglab.bronze.core.input.batch
+
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
 
 class Hdfs extends File {

@@ -1,14 +1,12 @@
 package org.excitinglab.bronze.config
 
-import org.excitinglab.bronze.apis.{BaseOutput, BaseStaticInput, BaseStreamingInput, BaseTransform, Plugin}
+import org.excitinglab.bronze.apis.{BaseMl, BaseOutput, BaseStaticInput, BaseStreamingInput, BaseTransform, Plugin}
 
 import java.io.File
 import java.util.ServiceLoader
 import scala.language.reflectiveCalls
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-import org.excitinglab.bronze.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigResolveOptions}
-
 import scala.util.{Failure, Success, Try}
 import util.control.Breaks._
 
@@ -53,6 +51,7 @@ class ConfigBuilder(configFile: String) {
     val streamingInputs = this.createStreamingInputs("streaming")
     val outputs = this.createOutputs[BaseOutput]("batch")
     val transforms = this.createTransforms
+    val mls = this.createMls
   }
 
   def getSparkConfigs: Config = {
@@ -61,11 +60,11 @@ class ConfigBuilder(configFile: String) {
 
   def createTransforms: List[BaseTransform] = {
 
-    var filterList = List[BaseTransform]()
+    var transformList = List[BaseTransform]()
     config
-      .getConfigList("filter")
+      .getConfigList("transform")
       .foreach(plugin => {
-        val className = buildClassFullQualifier(plugin.getString(ConfigBuilder.PluginNameKey), "filter")
+        val className = buildClassFullQualifier(plugin.getString(ConfigBuilder.PluginNameKey), "transform")
 
         val obj = Class
           .forName(className)
@@ -74,10 +73,10 @@ class ConfigBuilder(configFile: String) {
 
         obj.setConfig(plugin)
 
-        filterList = filterList :+ obj
+        transformList = transformList :+ obj
       })
 
-    filterList
+    transformList
   }
 
   def createStreamingInputs(engine: String): List[BaseStreamingInput[Any]] = {
@@ -158,6 +157,27 @@ class ConfigBuilder(configFile: String) {
     outputList
   }
 
+  def createMls: List[BaseMl] = {
+
+    var mlList = List[BaseMl]()
+    config
+      .getConfigList("ml")
+      .foreach(plugin => {
+        val className = buildClassFullQualifier(plugin.getString(ConfigBuilder.PluginNameKey), "ml")
+
+        val obj = Class
+          .forName(className)
+          .newInstance()
+          .asInstanceOf[BaseMl]
+
+        obj.setConfig(plugin)
+
+        mlList = mlList :+ obj
+      })
+
+    mlList
+  }
+
   private def getInputType(name: String, engine: String): String = {
     name match {
       case _ if name.toLowerCase.endsWith("stream") => {
@@ -184,7 +204,8 @@ class ConfigBuilder(configFile: String) {
 
       val packageName = classType match {
         case "input" => ConfigBuilder.InputPackage + "." + getInputType(name, engine)
-        case "filter" => ConfigBuilder.FilterPackage
+        case "transform" => ConfigBuilder.TransformPackage
+        case "ml" => ConfigBuilder.MlPackage
         case "output" => ConfigBuilder.OutputPackage + "." + engine
       }
 
@@ -192,6 +213,7 @@ class ConfigBuilder(configFile: String) {
         (ServiceLoader load classOf[BaseStaticInput]).asScala ++
           (ServiceLoader load classOf[BaseStreamingInput[Any]]).asScala ++
           (ServiceLoader load classOf[BaseTransform]).asScala ++
+          (ServiceLoader load classOf[BaseMl]).asScala ++
           (ServiceLoader load classOf[BaseOutput]).asScala
 
       var classFound = false
@@ -216,10 +238,11 @@ class ConfigBuilder(configFile: String) {
 
 object ConfigBuilder {
 
-  val PackagePrefix = "io.github.interestinglab.waterdrop"
-  val FilterPackage = PackagePrefix + ".filter"
+  val PackagePrefix = "org.excitinglab.bronze.core"
+  val TransformPackage = PackagePrefix + ".transform"
   val InputPackage = PackagePrefix + ".input"
   val OutputPackage = PackagePrefix + ".output"
+  val MlPackage = PackagePrefix + ".ml"
 
   val PluginNameKey = "plugin_name"
 }
