@@ -16,13 +16,33 @@ class LogisticRegression extends BaseMl {
     val stages = new ArrayBuffer[PipelineStage]()
 
     val lor = new classification.LogisticRegression()
-      .setFeaturesCol(config.getString("featuresCol"))
-      .setLabelCol(config.getString("labelCol"))
-      .setRegParam(config.getDouble("regParam"))
-      .setElasticNetParam(config.getDouble("elasticNetParam"))
-      .setMaxIter(config.getInt("maxIter"))
-      .setTol(config.getDouble("tol"))
-      .setFitIntercept(config.getBoolean("fitIntercept"))
+    if (config.hasPath("featureCol")) {
+      lor.setFeaturesCol(config.getString("featuresCol"))
+    }
+    if (config.hasPath("labelCol")) {
+      lor.setLabelCol(config.getString("labelCol"))
+    }
+    if (config.hasPath("regParam")) {
+      lor.setRegParam(config.getDouble("regParam"))
+    }
+    if (config.hasPath("elasticNetParam")) {
+      lor.setElasticNetParam(config.getDouble("elasticNetParam"))
+    }
+    if (config.hasPath("maxIter")) {
+      lor.setMaxIter(config.getInt("maxIter"))
+    }
+    if (config.hasPath("tol")) {
+      lor.setTol(config.getDouble("tol"))
+    }
+    if (config.hasPath("featureCol")) {
+      lor.setFeaturesCol(config.getString("featuresCol"))
+    }
+    if (config.hasPath("fitIntercept")) {
+      lor.setFitIntercept(config.getBoolean("fitIntercept"))
+    }
+    if (config.hasPath("family")) {
+      lor.setFamily(config.getString("family"))
+    }
 
     stages += lor
 
@@ -34,15 +54,29 @@ class LogisticRegression extends BaseMl {
     println(s"Training time: $elapsedTime seconds")
 
     val lorModel = pipelineModel.stages.last.asInstanceOf[LogisticRegressionModel]
+    if (config.hasPath("saveModel") && config.getBoolean("saveModel")) {
+      println(s"Saving model to path: ${config.getString("modelPath")}......")
+      lorModel.write.overwrite().save(config.getString("modelPath"))
+    }
+
     // Print the weights and intercept for logistic regression.
-    println(s"Weights: ${lorModel.coefficients} Intercept: ${lorModel.intercept}")
+    if (config.hasPath("family") && config.getString("family").equals("multinomial")) {
+      println(s"Multinomial coefficients: ${lorModel.coefficientMatrix}")
+      println(s"Multinomial intercepts: ${lorModel.interceptVector}")
+      val summary = lorModel.summary
+      summary.predictions
+    } else {
+      println(s"Weights: ${lorModel.coefficients} Intercept: ${lorModel.intercept}")
+      val trainingSummary = lorModel.binarySummary
+      val roc = trainingSummary.roc
+      println(s"areaUnderROC: ${trainingSummary.areaUnderROC}")
+      trainingSummary.predictions
+//      roc
+    }
 
-    lorModel.write.overwrite().save("E:\\machinelearning\\model\\logisticRegression")
 
-    val trainingSummary = lorModel.binarySummary
-    val roc = trainingSummary.roc
-    println(s"areaUnderROC: ${trainingSummary.areaUnderROC}")
-    roc
+
+
   }
 
   /**

@@ -36,6 +36,7 @@ class File extends BaseStaticInput {
         reader.option("mode", "PERMISSIVE").json(path)
       }
       case "orc" => reader.orc(path)
+      case "libsvm" => reader.load(path)
       case "csv" => {
         var delimiter: String = config.hasPath("separator") match {
           case true => config.getString("separator")

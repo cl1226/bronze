@@ -86,6 +86,7 @@ object Bronze extends Logging {
     }
 
     val sparkSession = SparkSession.builder.config(sparkConf).getOrCreate()
+    sparkSession.sparkContext.setLogLevel("error")
 
     val staticInputs = configBuilder.createStaticInputs("batch")
     val streamingInputs = configBuilder.createStreamingInputs("batch")
