@@ -85,7 +85,6 @@ object Bronze extends Logging {
       case false =>
     }
 
-
     val sparkSession = SparkSession.builder.config(sparkConf).getOrCreate()
 
     val staticInputs = configBuilder.createStaticInputs("batch")
@@ -138,6 +137,11 @@ object Bronze extends Logging {
         ds = filterProcess(sparkSession, f, ds)
         registerFilterTempView(f, ds)
 
+      }
+      mls.length > 0 match {
+        case true => {
+          ds = mls(0).process(sparkSession, ds)
+        }
       }
       outputs.foreach(p => {
         outputProcess(sparkSession, p, ds)
