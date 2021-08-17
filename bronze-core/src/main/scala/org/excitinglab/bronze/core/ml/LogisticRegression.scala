@@ -7,10 +7,31 @@ import org.excitinglab.bronze.apis.BaseMl
 import org.excitinglab.bronze.config.{Config, ConfigFactory}
 
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.JavaConversions._
 
+/**
+ * 逻辑回归
+ */
 class LogisticRegression extends BaseMl {
 
   var config: Config = ConfigFactory.empty()
+
+  /**
+   * Prepare before running, do things like set config default value, add broadcast variable, accumulator.
+   */
+  override def prepare(spark: SparkSession): Unit = {
+    super.prepare(spark)
+
+    val defaultConfig = ConfigFactory.parseMap(
+      Map(
+        "regParam" -> 0.0,
+        "elasticNetParam" -> 0.0,
+        "maxIter" -> 100,
+        "tol" -> 1E-6
+      )
+    )
+    config = config.withFallback(defaultConfig)
+  }
 
   override def process(spark: SparkSession, df: Dataset[Row]): Dataset[Row] = {
     val stages = new ArrayBuffer[PipelineStage]()
@@ -34,9 +55,6 @@ class LogisticRegression extends BaseMl {
     if (config.hasPath("tol")) {
       lor.setTol(config.getDouble("tol"))
     }
-    if (config.hasPath("featureCol")) {
-      lor.setFeaturesCol(config.getString("featuresCol"))
-    }
     if (config.hasPath("fitIntercept")) {
       lor.setFitIntercept(config.getBoolean("fitIntercept"))
     }
@@ -55,7 +73,7 @@ class LogisticRegression extends BaseMl {
 
     val lorModel = pipelineModel.stages.last.asInstanceOf[LogisticRegressionModel]
     if (config.hasPath("saveModel") && config.getBoolean("saveModel")) {
-      println(s"Saving model to path: ${config.getString("modelPath")}......")
+      println(s"Saving model to path: ${config.getString("modelPath")}")
       lorModel.write.overwrite().save(config.getString("modelPath"))
     }
 
