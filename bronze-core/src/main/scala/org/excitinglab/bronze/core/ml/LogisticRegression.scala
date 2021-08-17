@@ -37,11 +37,9 @@ class LogisticRegression extends BaseMl {
     // Print the weights and intercept for logistic regression.
     println(s"Weights: ${lorModel.coefficients} Intercept: ${lorModel.intercept}")
 
-    val trainingSummary = lorModel.binarySummary
-    val objectiveHistory = trainingSummary.objectiveHistory
-    println("objectiveHistory:")
-    objectiveHistory.foreach(loss => println(loss))
+    lorModel.write.overwrite().save("E:\\machinelearning\\model\\logisticRegression")
 
+    val trainingSummary = lorModel.binarySummary
     val roc = trainingSummary.roc
     println(s"areaUnderROC: ${trainingSummary.areaUnderROC}")
     roc
