@@ -7,6 +7,10 @@ import org.excitinglab.bronze.config.{Config, ConfigFactory}
 
 import scala.collection.JavaConversions._
 
+/**
+ * Bucketizer 分桶
+ * 将把一个给定的连续型特征分解到指定的桶中
+ */
 class Bucketizer extends BaseTransform {
 
   var config: Config = ConfigFactory.empty()

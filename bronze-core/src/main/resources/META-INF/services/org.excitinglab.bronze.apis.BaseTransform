@@ -12,3 +12,4 @@ org.excitinglab.bronze.core.transform.StopWordsRemover
 org.excitinglab.bronze.core.transform.OneHotEncoder
 org.excitinglab.bronze.core.transform.Bucketizer
 org.excitinglab.bronze.core.transform.MinMaxScaler
+org.excitinglab.bronze.core.transform.MaxAbsScaler
