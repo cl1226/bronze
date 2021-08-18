@@ -4,3 +4,4 @@ org.excitinglab.bronze.core.transform.StringIndexer
 org.excitinglab.bronze.core.transform.Sql
 org.excitinglab.bronze.core.transform.LabeledPoint
 org.excitinglab.bronze.core.transform.Tokenizer
+org.excitinglab.bronze.core.transform.StandardScaler
