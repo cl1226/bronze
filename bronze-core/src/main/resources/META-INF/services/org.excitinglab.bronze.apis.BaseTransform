@@ -1,6 +1,7 @@
 org.excitinglab.bronze.core.transform.Filter
 org.excitinglab.bronze.core.transform.Schema
 org.excitinglab.bronze.core.transform.StringIndexer
+org.excitinglab.bronze.core.transform.IndexToString
 org.excitinglab.bronze.core.transform.Sql
 org.excitinglab.bronze.core.transform.LabeledPoint
 org.excitinglab.bronze.core.transform.Tokenizer

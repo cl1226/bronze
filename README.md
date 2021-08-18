@@ -1,5 +1,5 @@
 # Bronze
-Bronze架构于Apache SparkMllib之上的机器学习平台，提供数据接入，转换，训练，测试
+Bronze架构于Apache SparkMllib之上的机器学习平台，提供数据接入，转换，训练，测试，输出。
 
 -----
 ### Bronze结构
@@ -77,6 +77,7 @@ Fake, File, HDFS
    - ElementwiseProduct *用一个缩放向量对某向量中的每个值以不同的尺度进行缩放*
    - Normalizer *使用某个幂范数来缩放多维向量*
    - StringIndexer *将字符串映射到不同的数字id*
+   - IndexToString *将索引的数值类型映射回原始的类别之*
    ##### 文本数据转换器
    - Tokenizer *文本分词*
    - StopWordRemover *删除常用词*
