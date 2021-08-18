@@ -5,3 +5,4 @@ org.excitinglab.bronze.core.transform.Sql
 org.excitinglab.bronze.core.transform.LabeledPoint
 org.excitinglab.bronze.core.transform.Tokenizer
 org.excitinglab.bronze.core.transform.StandardScaler
+org.excitinglab.bronze.core.transform.RFormula

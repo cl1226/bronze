@@ -12,7 +12,7 @@ class File extends BaseStaticInput {
    * Get DataFrame from this Static Input.
    * */
   override def getDataset(spark: SparkSession): Dataset[Row] = {
-    val path = buildPathWithDefaultSchema(config.getString("catalog"), "file://")
+    val path = buildPathWithDefaultSchema(config.getString("path"), "file://")
     fileReader(spark, path)
   }
 
