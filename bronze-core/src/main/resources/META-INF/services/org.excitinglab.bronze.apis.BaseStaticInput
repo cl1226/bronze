@@ -1,1 +1,3 @@
 org.excitinglab.bronze.core.input.batch.Hdfs
+org.excitinglab.bronze.core.input.batch.Fake
+org.excitinglab.bronze.core.input.batch.File

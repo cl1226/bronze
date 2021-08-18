@@ -143,6 +143,7 @@ object Bronze extends Logging {
         case true => {
           ds = mls(0).process(sparkSession, ds)
         }
+        case _ =>
       }
       outputs.foreach(p => {
         outputProcess(sparkSession, p, ds)
