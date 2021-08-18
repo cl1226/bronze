@@ -23,7 +23,7 @@ class StringIndexer extends BaseTransform {
 
     val defaultConfig = ConfigFactory.parseMap(
       Map(
-        "handlerInvalid" -> "error"
+        "handleInvalid" -> "error"
       )
     )
     config = config.withFallback(defaultConfig)

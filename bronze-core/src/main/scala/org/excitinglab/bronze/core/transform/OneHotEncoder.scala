@@ -7,7 +7,12 @@ import org.excitinglab.bronze.config.{Config, ConfigFactory}
 
 import scala.collection.JavaConversions._
 
-class VectorAssembler extends BaseTransform {
+/**
+ * OneHotEncoder
+ * 实际上是将转换列转换成了系数向量
+ * OneHotEncoder = String > IndexDouble > SparseVector
+ */
+class OneHotEncoder extends BaseTransform {
 
   var config: Config = ConfigFactory.empty()
 
@@ -19,20 +24,20 @@ class VectorAssembler extends BaseTransform {
 
     val defaultConfig = ConfigFactory.parseMap(
       Map(
-        "handleInvalid" -> "error"   // skip || error (default)
+        "dropLast" -> "false"   // true || false
       )
     )
     config = config.withFallback(defaultConfig)
   }
 
   override def process(spark: SparkSession, df: Dataset[Row]): Dataset[Row] = {
-    val vectorAssembler = new feature.VectorAssembler()
-    vectorAssembler.setInputCols(config.getString("inputCols").split(",").map(_.trim))
+    val oneHotEncoder = new feature.OneHotEncoder()
+    oneHotEncoder.setInputCol(config.getString("inputCol"))
     if (config.hasPath("outputCol")) {
-      vectorAssembler.setOutputCol(config.getString("outputCol"))
+      oneHotEncoder.setOutputCol(config.getString("outputCol"))
     }
-    vectorAssembler.setHandleInvalid(config.getString("handleInvalid"))
-    vectorAssembler.transform(df)
+    oneHotEncoder.setDropLast(config.getBoolean("dropLast"))
+    oneHotEncoder.transform(df)
   }
 
   /**
@@ -49,7 +54,7 @@ class VectorAssembler extends BaseTransform {
    * Return true and empty string if config is valid, return false and error message if config is invalid.
    */
   override def checkConfig(): (Boolean, String) = {
-    val requiredOptions = List("inputCols")
+    val requiredOptions = List("inputCol")
     val nonExistsOptions = requiredOptions.map(optionName => (optionName, config.hasPath(optionName))).filter { p =>
       val (optionName, exists) = p
       !exists

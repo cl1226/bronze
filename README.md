@@ -11,7 +11,16 @@ Fake, File, HDFS
 
 - Transform Plugin
 
-Filter, Schema, Sql, StringIndexer, LabeledPoint, Tokenizer, StandardScaler, RFormula
+   - Filter *过滤*
+   - Schema *给输入数据集增加schema*
+   - Sql *通过sql方式操作员数据集*
+   - StringIndexer
+   - LabeledPoint
+   - Tokenizer 
+   - StandardScaler 
+   - RFormula
+   - VectorAssembler
+   - StopWordRemover
 
 - Machine learning Plugin
 

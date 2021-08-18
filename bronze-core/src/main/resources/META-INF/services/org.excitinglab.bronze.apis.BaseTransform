@@ -9,3 +9,4 @@ org.excitinglab.bronze.core.transform.RFormula
 org.excitinglab.bronze.core.transform.SQLTransformer
 org.excitinglab.bronze.core.transform.VectorAssembler
 org.excitinglab.bronze.core.transform.StopWordsRemover
+org.excitinglab.bronze.core.transform.OneHotEncoder
