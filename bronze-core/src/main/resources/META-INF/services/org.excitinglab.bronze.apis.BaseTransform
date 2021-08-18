@@ -16,3 +16,4 @@ org.excitinglab.bronze.core.transform.MinMaxScaler
 org.excitinglab.bronze.core.transform.MaxAbsScaler
 org.excitinglab.bronze.core.transform.ElementwiseProduct
 org.excitinglab.bronze.core.transform.Normalizer
+org.excitinglab.bronze.core.transform.NGram

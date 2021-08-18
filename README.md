@@ -36,6 +36,7 @@ Fake, File, HDFS
    ##### 文本数据转换器
    - Tokenizer *文本分词*
    - StopWordRemover *删除常用词*
+   - NGram *单词组合，即长度为n的单词序列*
    
 
 - Machine learning Plugin
