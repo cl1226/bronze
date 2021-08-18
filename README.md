@@ -4,8 +4,7 @@ Bronze架构于Apache SparkMllib之上的机器学习平台，提供数据接入
 -----
 
 ```mermaid
-graph LR
-  id[Input] --> id[Transform] --> id[Machine learning] --> id[Test] --> id[Output]
+  [Input] --> [Transform] --> [Machine learning] --> [Test] --> [Output]
 ```
 
 ### Bronze 支持的插件
