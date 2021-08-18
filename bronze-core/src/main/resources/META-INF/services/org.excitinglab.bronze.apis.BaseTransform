@@ -7,3 +7,4 @@ org.excitinglab.bronze.core.transform.Tokenizer
 org.excitinglab.bronze.core.transform.StandardScaler
 org.excitinglab.bronze.core.transform.RFormula
 org.excitinglab.bronze.core.transform.SQLTransformer
+org.excitinglab.bronze.core.transform.VectorAssembler

@@ -13,7 +13,7 @@ class LabeledPoint extends BaseTransform {
   override def process(spark: SparkSession, df: Dataset[Row]): Dataset[Row] = {
     val features = config.getString("features")
     val label = config.getString("label")
-    val ints = features.split(",").map(df.columns.indexOf(_))
+    val ints = features.split(",").map(_.trim).map(df.columns.indexOf(_))
     val labelIndex = df.columns.indexOf(label)
     val labeledPoint = df.rdd.map(r => {
       org.apache.spark.ml.feature.LabeledPoint(r.getDouble(labelIndex), Vectors.dense(ints.map(r.getDouble(_))))

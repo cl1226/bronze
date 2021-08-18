@@ -12,9 +12,9 @@ class Schema extends BaseTransform {
 
   override def process(spark: SparkSession, df: Dataset[Row]): Dataset[Row] = {
     val fields = config.getString("fields")
-    val structFields = fields.split(",").map(field => {
+    val structFields = fields.split(",").map(_.trim).map(field => {
       val f = field.split(":")
-      StructField(f(0), BronzeDataType.fromStructField(f(1).toLowerCase))
+      StructField(f(0), BronzeDataType.fromStructField(f(1).trim.toLowerCase))
     })
 
     var df1 = df
