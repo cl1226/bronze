@@ -8,10 +8,12 @@ import org.excitinglab.bronze.config.{Config, ConfigFactory}
 import scala.collection.JavaConversions._
 
 /**
- * Bucketizer 基于硬编码分桶
- * 将把一个给定的连续型特征分解到指定的桶中
+ * QuantileDiscretizer 基于百分比分桶
+ * 分桶数通过参数numBuckets来指定的，桶的范围通过使用近似算法（approxQuantile）来得到的。
+ * 近似的精度可以通过relativeError参数来控制。当为0时，将会计算精确的分位数。
+ * 桶的上边界和下边界分别是正无穷和负无穷时，取值将会覆盖所有的实数值
  */
-class Bucketizer extends BaseTransform {
+class QuantileDiscretizer extends BaseTransform {
 
   var config: Config = ConfigFactory.empty()
 
@@ -23,29 +25,30 @@ class Bucketizer extends BaseTransform {
 
     val defaultConfig = ConfigFactory.parseMap(
       Map(
-        "handleInvalid" -> "error"   // skip || error (default) || keep
+        "handleInvalid" -> "error",   // skip || error (default) || keep
+        "relativeError" -> "0"
       )
     )
     config = config.withFallback(defaultConfig)
   }
 
   override def process(spark: SparkSession, df: Dataset[Row]): Dataset[Row] = {
-    val bucketizer = new feature.Bucketizer()
+    val quantileDiscretizer = new feature.QuantileDiscretizer()
     val inputCol = config.getString("inputCol")
     inputCol.split(",").length > 1 match {
-      case true => bucketizer.setInputCols(config.getString("inputCols").split(",").map(_.trim))
-      case _ => bucketizer.setInputCol(inputCol)
+      case true => quantileDiscretizer.setInputCols(config.getString("inputCols").split(",").map(_.trim))
+      case _ => quantileDiscretizer.setInputCol(inputCol)
     }
     val outputCol = config.getString("outputCol")
     outputCol.split(",").length > 1 match {
-      case true => bucketizer.setOutputCols(config.getString("outputCols").split(",").map(_.trim))
-      case _ => bucketizer.setOutputCol(outputCol)
+      case true => quantileDiscretizer.setOutputCols(config.getString("outputCols").split(",").map(_.trim))
+      case _ => quantileDiscretizer.setOutputCol(outputCol)
     }
-    bucketizer.setHandleInvalid(config.getString("handleInvalid"))
-    val splits = config.getString("splits").split(",").map(_.trim.toDouble)
-    val array = Array.concat(Array(Double.NegativeInfinity), splits, Array(Double.PositiveInfinity))
-    bucketizer.setSplits(array)
-    bucketizer.transform(df)
+    quantileDiscretizer.setHandleInvalid(config.getString("handleInvalid"))
+    quantileDiscretizer.setNumBuckets(config.getInt("numBuckets"))
+    quantileDiscretizer.setRelativeError(config.getDouble("relativeError"))
+
+    quantileDiscretizer.fit(df).transform(df)
   }
 
   /**
@@ -62,7 +65,7 @@ class Bucketizer extends BaseTransform {
    * Return true and empty string if config is valid, return false and error message if config is invalid.
    */
   override def checkConfig(): (Boolean, String) = {
-    val requiredOptions = List("inputCol", "outputCol", "splits")
+    val requiredOptions = List("inputCol", "outputCol", "numBuckets")
     val nonExistsOptions = requiredOptions.map(optionName => (optionName, config.hasPath(optionName))).filter { p =>
       val (optionName, exists) = p
       !exists
