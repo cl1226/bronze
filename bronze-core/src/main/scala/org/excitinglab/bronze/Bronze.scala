@@ -122,11 +122,10 @@ object Bronze extends Logging {
 
     basePrepare(sparkSession, staticInputs, transforms, trains, models, outputs)
 
-    // let static input register as table for later use if needed
-    val headDs = registerInputTempViewWithHead(staticInputs, sparkSession)
-
     // when you see this ASCII logo, bronze is really started.
     showBronzeAsciiLogo()
+    // let static input register as table for later use if needed
+    val headDs = registerInputTempViewWithHead(staticInputs, sparkSession)
 
     if (staticInputs.nonEmpty) {
       var ds = headDs
@@ -156,6 +155,7 @@ object Bronze extends Logging {
       var model: PipelineModel = null
       trains.length > 0 match {
         case true => {
+          println(s">>>[INFO] 模型: ${trains(0).describe}, 开始训练......")
           model = trains(0).process(sparkSession, sparkSession.read.table("bronze_training_data"))
         }
         case false =>
@@ -183,7 +183,10 @@ object Bronze extends Logging {
   }
 
   private[bronze] def showBronzeAsciiLogo(): Unit = {
+    println("==============================================================")
     AsciiArt.printAsciiArt("EXCITING")
+    println("==============================================================")
+    println("")
   }
 
   private[bronze] def filterProcess(

@@ -2,7 +2,7 @@ package org.excitinglab.bronze.apis
 
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.SparkSession
-import org.excitinglab.bronze.config.Config
+import org.excitinglab.bronze.config.{Config, ConfigRenderOptions}
 
 /**
  * checkConfig --> prepare
@@ -33,5 +33,14 @@ trait Plugin extends Serializable with Logging {
    * Prepare before running, do things like set config default value, add broadcast variable, accumulator.
    */
   def prepare(spark: SparkSession): Unit = {}
+
+  /**
+   * print config properties
+   */
+  def showConfig(config: Config) = {
+    println(s">>>[INFO] ${config.getString("plugin_name")} plugin options: ")
+    val options: ConfigRenderOptions = ConfigRenderOptions.concise.setFormatted(true)
+    println(config.root().render(options))
+  }
 
 }

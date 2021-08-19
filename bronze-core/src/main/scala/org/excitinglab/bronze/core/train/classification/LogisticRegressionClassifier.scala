@@ -44,6 +44,11 @@ class LogisticRegressionClassifier extends BaseTrain {
   var config: Config = ConfigFactory.empty()
 
   /**
+   * 模型描述
+   */
+  override def describe: String = "(LogisticRegression)逻辑回归分类模型"
+
+  /**
    * Prepare before running, do things like set config default value, add broadcast variable, accumulator.
    */
   override def prepare(spark: SparkSession): Unit = {
@@ -62,6 +67,7 @@ class LogisticRegressionClassifier extends BaseTrain {
   }
 
   override def process(spark: SparkSession, df: Dataset[Row]): PipelineModel = {
+    showConfig(config)
     val stages = new ArrayBuffer[PipelineStage]()
 
     val lor = new classification.LogisticRegression()
@@ -81,7 +87,7 @@ class LogisticRegressionClassifier extends BaseTrain {
     }
 
     if (config.hasPath("printParams") && config.getBoolean("printParams")) {
-      println(">>>模型参数: ")
+      println(">>>[INFO] 模型参数: ")
       println(lor.explainParams())
     }
 
@@ -92,7 +98,7 @@ class LogisticRegressionClassifier extends BaseTrain {
     val pipeline = new Pipeline().setStages(stages.toArray)
     val pipelineModel = pipeline.fit(df)
     val elapsedTime = (System.nanoTime() - startTime) / 1e9
-    println(s">>>训练时长: $elapsedTime seconds")
+    println(s">>>[INFO] 训练时长: $elapsedTime seconds")
 
     pipelineModel
   }

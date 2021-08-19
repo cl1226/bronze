@@ -33,6 +33,11 @@ class GBTRegressor extends BaseTrain {
   var config: Config = ConfigFactory.empty()
 
   /**
+   * 模型描述
+   */
+  override def describe: String = "(GBTRegressor)梯度提升树回归模型"
+
+  /**
    * Prepare before running, do things like set config default value, add broadcast variable, accumulator.
    */
   override def prepare(spark: SparkSession): Unit = {
@@ -53,7 +58,7 @@ class GBTRegressor extends BaseTrain {
   }
 
   override def process(spark: SparkSession, df: Dataset[Row]): PipelineModel = {
-
+    showConfig(config)
     val stages = new ArrayBuffer[PipelineStage]()
     val gbt = new regression.GBTRegressor()
     gbt.setMaxIter(config.getInt("maxIter"))
@@ -77,7 +82,7 @@ class GBTRegressor extends BaseTrain {
     }
 
     if (config.hasPath("printParams") && config.getBoolean("printParams")) {
-      println(">>>模型参数: ")
+      println(">>>[INFO] 模型参数: ")
       println(gbt.explainParams())
     }
 
@@ -88,7 +93,7 @@ class GBTRegressor extends BaseTrain {
     val pipeline = new Pipeline().setStages(stages.toArray)
     val pipelineModel = pipeline.fit(df)
     val elapsedTime = (System.nanoTime() - startTime) / 1e9
-    println(s"Training time: $elapsedTime seconds")
+    println(s">>>[INFO] 训练时长: $elapsedTime seconds")
 
     pipelineModel
   }

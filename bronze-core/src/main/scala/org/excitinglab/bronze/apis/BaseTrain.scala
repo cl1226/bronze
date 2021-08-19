@@ -7,4 +7,8 @@ abstract class BaseTrain extends Plugin {
 
   def process(spark: SparkSession, df: Dataset[Row]): PipelineModel
 
+  /**
+   * 模型描述
+   */
+  def describe: String
 }

@@ -22,6 +22,11 @@ class NaiveBayesClassifier extends BaseTrain {
   var config: Config = ConfigFactory.empty()
 
   /**
+   * 模型描述
+   */
+  override def describe: String = "(NaiveBayes)朴素贝叶斯分类模型"
+
+  /**
    * Prepare before running, do things like set config default value, add broadcast variable, accumulator.
    */
   override def prepare(spark: SparkSession): Unit = {

@@ -17,6 +17,11 @@ class LinearRegression extends BaseTrain {
   var config: Config = ConfigFactory.empty()
 
   /**
+   * 模型描述
+   */
+  override def describe: String = "LinearRegression(线性回归模型)"
+
+  /**
    * Prepare before running, do things like set config default value, add broadcast variable, accumulator.
    */
   override def prepare(spark: SparkSession): Unit = {
@@ -34,6 +39,7 @@ class LinearRegression extends BaseTrain {
   }
 
   override def process(spark: SparkSession, df: Dataset[Row]): PipelineModel = {
+    showConfig(config)
     val stages = new ArrayBuffer[PipelineStage]()
     val lir = new org.apache.spark.ml.regression.LinearRegression()
 
@@ -57,7 +63,7 @@ class LinearRegression extends BaseTrain {
     }
 
     if (config.hasPath("printParams") && config.getBoolean("printParams")) {
-      println(">>>模型参数: ")
+      println(">>>[INFO] 模型参数: ")
       println(lir.explainParams())
     }
 
@@ -68,7 +74,7 @@ class LinearRegression extends BaseTrain {
     val pipeline = new Pipeline().setStages(stages.toArray)
     val pipelineModel = pipeline.fit(df)
     val elapsedTime = (System.nanoTime() - startTime) / 1e9
-    println(s"Training time: $elapsedTime seconds")
+    println(s">>>训练时长: $elapsedTime seconds")
 
     pipelineModel
   }
