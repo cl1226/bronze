@@ -6,7 +6,8 @@ import org.apache.spark.internal.Logging
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.excitinglab.bronze.config._
 import org.apache.hadoop.fs.Path
-import org.excitinglab.bronze.apis.{BaseMl, BaseOutput, BaseStaticInput, BaseTransform, Plugin}
+import org.apache.spark.ml.PipelineModel
+import org.excitinglab.bronze.apis.{BaseModel, BaseOutput, BaseStaticInput, BaseTrain, BaseTransform, BaseValidate, Plugin}
 import org.excitinglab.bronze.utils.{AsciiArt, CompressionUtils}
 
 import java.io.File
@@ -91,15 +92,17 @@ object Bronze extends Logging {
     val staticInputs = configBuilder.createStaticInputs("batch")
     val streamingInputs = configBuilder.createStreamingInputs("batch")
     val transforms = configBuilder.createTransforms
-    val mls = configBuilder.createMls
+    val trains = configBuilder.createTrains
+    val validates = configBuilder.createValidates
+    val models = configBuilder.createModels
     val outputs = configBuilder.createOutputs[BaseOutput]("batch")
 
-    baseCheckConfig(staticInputs, streamingInputs, transforms, mls, outputs)
+    baseCheckConfig(staticInputs, streamingInputs, transforms, trains, models, validates, outputs)
 
     if (streamingInputs.nonEmpty) {
 //      streamingProcessing(sparkSession, configBuilder, staticInputs, streamingInputs, transforms, outputs)
     } else {
-      batchProcessing(sparkSession, configBuilder, staticInputs, transforms, mls, outputs)
+      batchProcessing(sparkSession, configBuilder, staticInputs, transforms, trains, models, validates, outputs)
     }
 
   }
@@ -112,15 +115,17 @@ object Bronze extends Logging {
                                configBuilder: ConfigBuilder,
                                staticInputs: List[BaseStaticInput],
                                transforms: List[BaseTransform],
-                               mls: List[BaseMl],
+                               trains: List[BaseTrain],
+                               models: List[BaseModel],
+                               validates: List[BaseValidate],
                                outputs: List[BaseOutput]): Unit = {
 
-    basePrepare(sparkSession, staticInputs, transforms, mls, outputs)
+    basePrepare(sparkSession, staticInputs, transforms, trains, models, outputs)
 
     // let static input register as table for later use if needed
     val headDs = registerInputTempViewWithHead(staticInputs, sparkSession)
 
-    // when you see this ASCII logo, waterdrop is really started.
+    // when you see this ASCII logo, bronze is really started.
     showBronzeAsciiLogo()
 
     if (staticInputs.nonEmpty) {
@@ -135,18 +140,39 @@ object Bronze extends Logging {
         //  ds = f.process(sparkSession, ds)
         // }
 
-        ds = filterProcess(sparkSession, f, ds)
-        registerFilterTempView(f, ds)
-
-      }
-      mls.length > 0 match {
-        case true => {
-          ds = mls(0).process(sparkSession, ds)
+        f.getConfig().hasPath("split") match {
+          case true => {
+            val map = filterProcess(sparkSession, f, ds)
+            for ((k, v) <- map) {
+              registerTempView(k, v)
+            }
+          }
+          case false => {
+            ds = filterProcess(sparkSession, f, ds).get("bronze_training_data").get
+            registerFilterTempView(f, ds)
+          }
         }
-        case _ =>
       }
+      var model: PipelineModel = null
+      trains.length > 0 match {
+        case true => {
+          model = trains(0).process(sparkSession, sparkSession.read.table("bronze_training_data"))
+        }
+        case false =>
+      }
+      models.length > 0 match {
+        case true => models(0).process(sparkSession, model)
+        case false =>
+      }
+      val res: Dataset[Row] = validates.length > 0 match {
+        case true => {
+          validates(0).process(sparkSession, model, sparkSession.read.table("bronze_testing_data"))
+        }
+        case false => sparkSession.emptyDataFrame
+      }
+
       outputs.foreach(p => {
-        outputProcess(sparkSession, p, ds)
+        outputProcess(sparkSession, p, res)
       })
 
       sparkSession.stop()
@@ -162,9 +188,9 @@ object Bronze extends Logging {
 
   private[bronze] def filterProcess(
                                         sparkSession: SparkSession,
-                                        filter: BaseTransform,
-                                        ds: Dataset[Row]): Dataset[Row] = {
-    val config = filter.getConfig()
+                                        transform: BaseTransform,
+                                        ds: Dataset[Row]): Map[String, Dataset[Row]] = {
+    val config = transform.getConfig()
     val fromDs = config.hasPath("source_table_name") match {
       case true => {
         val sourceTableName = config.getString("source_table_name")
@@ -173,7 +199,12 @@ object Bronze extends Logging {
       case false => ds
     }
 
-    filter.process(sparkSession, fromDs)
+    config.hasPath("split") match {
+      case true => transform.processSplit(sparkSession, fromDs)
+      case _ =>  {
+        Map("bronze_training_data" -> transform.process(sparkSession, fromDs))
+      }
+    }
   }
 
   private[bronze] def outputProcess(sparkSession: SparkSession, output: BaseOutput, ds: Dataset[Row]): Unit = {

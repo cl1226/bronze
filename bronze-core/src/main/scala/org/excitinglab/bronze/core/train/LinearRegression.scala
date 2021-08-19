@@ -1,15 +1,17 @@
-package org.excitinglab.bronze.core.ml
+package org.excitinglab.bronze.core.train
 
+import org.apache.spark.ml.{Pipeline, PipelineModel, PipelineStage}
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
-import org.excitinglab.bronze.apis.BaseMl
+import org.excitinglab.bronze.apis.BaseTrain
 import org.excitinglab.bronze.config.{Config, ConfigFactory}
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * 线性回归
  */
-class LinearRegression extends BaseMl {
+class LinearRegression extends BaseTrain {
 
   var config: Config = ConfigFactory.empty()
 
@@ -30,7 +32,8 @@ class LinearRegression extends BaseMl {
     config = config.withFallback(defaultConfig)
   }
 
-  override def process(spark: SparkSession, df: Dataset[Row]): Dataset[Row] = {
+  override def process(spark: SparkSession, df: Dataset[Row]): PipelineModel = {
+    val stages = new ArrayBuffer[PipelineStage]()
     val lir = new org.apache.spark.ml.regression.LinearRegression()
 
     if (config.hasPath("featureCol")) {
@@ -52,28 +55,21 @@ class LinearRegression extends BaseMl {
       lir.setTol(config.getDouble("tol"))
     }
 
-    // Train the model
+    if (config.hasPath("printParams") && config.getBoolean("printParams")) {
+      println(">>>模型参数: ")
+      println(lir.explainParams())
+    }
+
+    stages += lir
+
+    // Fit the Pipeline.
     val startTime = System.nanoTime()
-    val lirModel = lir.fit(df)
+    val pipeline = new Pipeline().setStages(stages.toArray)
+    val pipelineModel = pipeline.fit(df)
     val elapsedTime = (System.nanoTime() - startTime) / 1e9
     println(s"Training time: $elapsedTime seconds")
 
-    // Print the weights and intercept for linear regression.
-    println(s"Weights: ${lirModel.coefficients} Intercept: ${lirModel.intercept}")
-
-    if (config.hasPath("saveModel") && config.getBoolean("saveModel")) {
-      println(s"Saving model to path: ${config.getString("modelPath")}")
-      lirModel.write.overwrite().save(config.getString("modelPath"))
-    }
-
-    val trainingSummary = lirModel.summary
-    println(s"numIterations: ${trainingSummary.totalIterations}")
-    println(s"objectiveHistory: [${trainingSummary.objectiveHistory.mkString(",")}]")
-    trainingSummary.residuals.show()
-    println(s"RMSE: ${trainingSummary.rootMeanSquaredError}")
-    println(s"r2: ${trainingSummary.r2}")
-
-    lirModel.summary.predictions
+    pipelineModel
   }
 
   /**

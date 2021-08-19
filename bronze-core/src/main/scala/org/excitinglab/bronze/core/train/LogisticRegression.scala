@@ -1,13 +1,13 @@
-package org.excitinglab.bronze.core.ml
+package org.excitinglab.bronze.core.train
 
 import org.apache.spark.ml.classification.LogisticRegressionModel
-import org.apache.spark.ml.{Pipeline, PipelineStage, classification}
+import org.apache.spark.ml.{Pipeline, PipelineModel, PipelineStage, classification}
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
-import org.excitinglab.bronze.apis.BaseMl
+import org.excitinglab.bronze.apis.BaseTrain
 import org.excitinglab.bronze.config.{Config, ConfigFactory}
 
-import scala.collection.mutable.ArrayBuffer
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * 逻辑回归
@@ -40,7 +40,7 @@ import scala.collection.JavaConversions._
  *  模型到达最终结果状态的速度会显示在目标历史（objective history）中。是一个Double类型的数组，包含了每次训练迭代时模型到底表现如何。
  *  summary.objectiveHistory
  */
-class LogisticRegression extends BaseMl {
+class LogisticRegression extends BaseTrain {
 
   var config: Config = ConfigFactory.empty()
 
@@ -62,7 +62,7 @@ class LogisticRegression extends BaseMl {
     config = config.withFallback(defaultConfig)
   }
 
-  override def process(spark: SparkSession, df: Dataset[Row]): Dataset[Row] = {
+  override def process(spark: SparkSession, df: Dataset[Row]): PipelineModel = {
     val stages = new ArrayBuffer[PipelineStage]()
 
     val lor = new classification.LogisticRegression()
@@ -81,8 +81,10 @@ class LogisticRegression extends BaseMl {
       lor.setFitIntercept(config.getBoolean("fitIntercept"))
     }
 
-    println("模型参数: ")
-    println(lor.explainParams())
+    if (config.hasPath("printParams") && config.getBoolean("printParams")) {
+      println(">>>模型参数: ")
+      println(lor.explainParams())
+    }
 
     stages += lor
 
@@ -91,29 +93,9 @@ class LogisticRegression extends BaseMl {
     val pipeline = new Pipeline().setStages(stages.toArray)
     val pipelineModel = pipeline.fit(df)
     val elapsedTime = (System.nanoTime() - startTime) / 1e9
-    println(s"Training time: $elapsedTime seconds")
+    println(s">>>训练时长: $elapsedTime seconds")
 
-    val lorModel = pipelineModel.stages.last.asInstanceOf[LogisticRegressionModel]
-    if (config.hasPath("saveModel") && config.getBoolean("saveModel")) {
-      println(s"Saving model to path: ${config.getString("modelPath")}")
-      lorModel.write.overwrite().save(config.getString("modelPath"))
-    }
-
-    // Print the weights and intercept for logistic regression.
-    if (config.hasPath("family") && config.getString("family").equals("multinomial")) {
-      println(s"Multinomial coefficients: ${lorModel.coefficientMatrix}")
-      println(s"Multinomial intercepts: ${lorModel.interceptVector}")
-      val summary = lorModel.summary
-      summary.predictions
-    } else {
-      println(s"Weights: ${lorModel.coefficients} Intercept: ${lorModel.intercept}")
-      val trainingSummary = lorModel.binarySummary
-      val roc = trainingSummary.roc
-      println(s"areaUnderROC: ${trainingSummary.areaUnderROC}")
-      trainingSummary.predictions
-//      roc
-    }
-
+    pipelineModel
   }
 
   /**

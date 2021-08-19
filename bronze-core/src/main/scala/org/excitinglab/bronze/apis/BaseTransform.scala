@@ -7,6 +7,8 @@ abstract class BaseTransform extends Plugin {
 
   def process(spark: SparkSession, df: Dataset[Row]): Dataset[Row]
 
+  def processSplit(spark: SparkSession, df: Dataset[Row]): Map[String, Dataset[Row]] = Map.empty
+
   /**
    * Allow to register user defined UDFs
    * @return empty list if there is no UDFs to be registered

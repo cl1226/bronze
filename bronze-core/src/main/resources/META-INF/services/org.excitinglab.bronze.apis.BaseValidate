@@ -1,0 +1,2 @@
+org.excitinglab.bronze.core.validate.BinaryClassificationValidate
+org.excitinglab.bronze.core.validate.LinearRegressionValidate

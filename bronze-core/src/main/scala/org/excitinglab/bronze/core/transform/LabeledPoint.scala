@@ -1,6 +1,5 @@
 package org.excitinglab.bronze.core.transform
 
-import org.apache.spark.ml.feature.LabeledPoint
 import org.apache.spark.ml.linalg.Vectors
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.excitinglab.bronze.apis.BaseTransform
@@ -20,7 +19,6 @@ class LabeledPoint extends BaseTransform {
     })
     import spark.implicits._
     val frame = labeledPoint.toDF()
-    frame.show()
     frame
   }
 

@@ -1,6 +1,6 @@
 package org.excitinglab.bronze.config
 
-import org.excitinglab.bronze.apis.{BaseMl, BaseOutput, BaseStaticInput, BaseStreamingInput, BaseTransform, Plugin}
+import org.excitinglab.bronze.apis.{BaseModel, BaseOutput, BaseStaticInput, BaseStreamingInput, BaseTrain, BaseTransform, BaseValidate, Plugin}
 
 import java.io.File
 import java.util.ServiceLoader
@@ -51,7 +51,9 @@ class ConfigBuilder(configFile: String) {
     val streamingInputs = this.createStreamingInputs("streaming")
     val outputs = this.createOutputs[BaseOutput]("batch")
     val transforms = this.createTransforms
-    val mls = this.createMls
+    val trains = this.createTrains
+    val models = this.createModels
+    val validates = this.createValidates
   }
 
   def getSparkConfigs: Config = {
@@ -157,25 +159,67 @@ class ConfigBuilder(configFile: String) {
     outputList
   }
 
-  def createMls: List[BaseMl] = {
+  def createTrains: List[BaseTrain] = {
 
-    var mlList = List[BaseMl]()
+    var trainList = List[BaseTrain]()
     config
-      .getConfigList("ml")
+      .getConfigList("train")
       .foreach(plugin => {
-        val className = buildClassFullQualifier(plugin.getString(ConfigBuilder.PluginNameKey), "ml")
+        val className = buildClassFullQualifier(plugin.getString(ConfigBuilder.PluginNameKey), "train")
 
         val obj = Class
           .forName(className)
           .newInstance()
-          .asInstanceOf[BaseMl]
+          .asInstanceOf[BaseTrain]
 
         obj.setConfig(plugin)
 
-        mlList = mlList :+ obj
+        trainList = trainList :+ obj
       })
 
-    mlList
+    trainList
+  }
+
+  def createValidates: List[BaseValidate] = {
+
+    var validateList = List[BaseValidate]()
+    config
+      .getConfigList("validate")
+      .foreach(plugin => {
+        val className = buildClassFullQualifier(plugin.getString(ConfigBuilder.PluginNameKey), "validate")
+
+        val obj = Class
+          .forName(className)
+          .newInstance()
+          .asInstanceOf[BaseValidate]
+
+        obj.setConfig(plugin)
+
+        validateList = validateList :+ obj
+      })
+
+    validateList
+  }
+
+  def createModels: List[BaseModel] = {
+
+    var modelList = List[BaseModel]()
+    config
+      .getConfigList("model")
+      .foreach(plugin => {
+        val className = buildClassFullQualifier(plugin.getString(ConfigBuilder.PluginNameKey), "model")
+
+        val obj = Class
+          .forName(className)
+          .newInstance()
+          .asInstanceOf[BaseModel]
+
+        obj.setConfig(plugin)
+
+        modelList = modelList :+ obj
+      })
+
+    modelList
   }
 
   private def getInputType(name: String, engine: String): String = {
@@ -205,7 +249,9 @@ class ConfigBuilder(configFile: String) {
       val packageName = classType match {
         case "input" => ConfigBuilder.InputPackage + "." + getInputType(name, engine)
         case "transform" => ConfigBuilder.TransformPackage
-        case "ml" => ConfigBuilder.MlPackage
+        case "train" => ConfigBuilder.TrainPackage
+        case "model" => ConfigBuilder.ModelPackage
+        case "validate" => ConfigBuilder.ValidatePackage
         case "output" => ConfigBuilder.OutputPackage + "." + engine
       }
 
@@ -213,7 +259,9 @@ class ConfigBuilder(configFile: String) {
         (ServiceLoader load classOf[BaseStaticInput]).asScala ++
           (ServiceLoader load classOf[BaseStreamingInput[Any]]).asScala ++
           (ServiceLoader load classOf[BaseTransform]).asScala ++
-          (ServiceLoader load classOf[BaseMl]).asScala ++
+          (ServiceLoader load classOf[BaseTrain]).asScala ++
+          (ServiceLoader load classOf[BaseModel]).asScala ++
+          (ServiceLoader load classOf[BaseValidate]).asScala ++
           (ServiceLoader load classOf[BaseOutput]).asScala
 
       var classFound = false
@@ -242,7 +290,9 @@ object ConfigBuilder {
   val TransformPackage = PackagePrefix + ".transform"
   val InputPackage = PackagePrefix + ".input"
   val OutputPackage = PackagePrefix + ".output"
-  val MlPackage = PackagePrefix + ".ml"
+  val TrainPackage = PackagePrefix + ".train"
+  val ModelPackage = PackagePrefix + ".model"
+  val ValidatePackage = PackagePrefix + ".validate"
 
   val PluginNameKey = "plugin_name"
 }

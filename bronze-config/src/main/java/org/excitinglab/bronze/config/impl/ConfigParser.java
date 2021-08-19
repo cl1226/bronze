@@ -102,7 +102,9 @@ final class ConfigParser {
                   && (path.first().equals("input")
                     || path.first().equals("output")
                     || path.first().equals("transform")
-                    || path.first().equals("ml"))) {
+                    || path.first().equals("train")
+                    || path.first().equals("model")
+                    || path.first().equals("validate"))) {
                     v = parseObjectForWaterdrop((ConfigNodeObject)n);
                 } else {
                     v = parseObject((ConfigNodeObject)n);
