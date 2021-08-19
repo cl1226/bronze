@@ -1,6 +1,5 @@
-package org.excitinglab.bronze.core.train
+package org.excitinglab.bronze.core.train.classification
 
-import org.apache.spark.ml.classification.LogisticRegressionModel
 import org.apache.spark.ml.{Pipeline, PipelineModel, PipelineStage, classification}
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.excitinglab.bronze.apis.BaseTrain
@@ -40,7 +39,7 @@ import scala.collection.mutable.ArrayBuffer
  *  模型到达最终结果状态的速度会显示在目标历史（objective history）中。是一个Double类型的数组，包含了每次训练迭代时模型到底表现如何。
  *  summary.objectiveHistory
  */
-class LogisticRegression extends BaseTrain {
+class LogisticRegressionClassifier extends BaseTrain {
 
   var config: Config = ConfigFactory.empty()
 

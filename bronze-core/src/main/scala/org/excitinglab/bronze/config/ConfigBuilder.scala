@@ -234,6 +234,16 @@ class ConfigBuilder(configFile: String) {
     }
   }
 
+  private def getTrainType(name: String): String = {
+    name match {
+      case _ if name.toLowerCase.endsWith("classifier") => "classification"
+      case _ if name.toLowerCase.endsWith("regression") => "regression"
+      case _ if name.toLowerCase.endsWith("regressor") => "regression"
+      case _ if name.toLowerCase.endsWith("clustering") => "clustering"
+      case _ => ""
+    }
+  }
+
   /**
    * Get full qualified class name by reflection api, ignore case.
    * */
@@ -249,7 +259,7 @@ class ConfigBuilder(configFile: String) {
       val packageName = classType match {
         case "input" => ConfigBuilder.InputPackage + "." + getInputType(name, engine)
         case "transform" => ConfigBuilder.TransformPackage
-        case "train" => ConfigBuilder.TrainPackage
+        case "train" => ConfigBuilder.TrainPackage + "." + getTrainType(name)
         case "model" => ConfigBuilder.ModelPackage
         case "validate" => ConfigBuilder.ValidatePackage
         case "output" => ConfigBuilder.OutputPackage + "." + engine

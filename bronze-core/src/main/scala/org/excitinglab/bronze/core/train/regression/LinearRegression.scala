@@ -1,4 +1,4 @@
-package org.excitinglab.bronze.core.train
+package org.excitinglab.bronze.core.train.regression
 
 import org.apache.spark.ml.{Pipeline, PipelineModel, PipelineStage}
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
@@ -10,6 +10,7 @@ import scala.collection.mutable.ArrayBuffer
 
 /**
  * 线性回归
+ * 线性回归的超参数和训练参数与逻辑回归一致
  */
 class LinearRegression extends BaseTrain {
 

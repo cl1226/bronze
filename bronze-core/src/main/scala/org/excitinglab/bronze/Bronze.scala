@@ -183,7 +183,7 @@ object Bronze extends Logging {
   }
 
   private[bronze] def showBronzeAsciiLogo(): Unit = {
-    AsciiArt.printAsciiArt("Bronze")
+    AsciiArt.printAsciiArt("EXCITING")
   }
 
   private[bronze] def filterProcess(
