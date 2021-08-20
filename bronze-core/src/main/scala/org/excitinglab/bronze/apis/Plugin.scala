@@ -34,13 +34,4 @@ trait Plugin extends Serializable with Logging {
    */
   def prepare(spark: SparkSession): Unit = {}
 
-  /**
-   * print config properties
-   */
-  def showConfig(config: Config) = {
-    println(s">>>[INFO] ${config.getString("plugin_name")} plugin options: ")
-    val options: ConfigRenderOptions = ConfigRenderOptions.concise.setFormatted(true)
-    println(config.root().render(options))
-  }
-
 }

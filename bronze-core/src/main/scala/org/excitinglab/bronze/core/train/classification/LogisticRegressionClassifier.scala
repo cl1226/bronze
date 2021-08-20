@@ -67,7 +67,6 @@ class LogisticRegressionClassifier extends BaseTrain {
   }
 
   override def process(spark: SparkSession, df: Dataset[Row]): PipelineModel = {
-    showConfig(config)
     val stages = new ArrayBuffer[PipelineStage]()
 
     val lor = new classification.LogisticRegression()

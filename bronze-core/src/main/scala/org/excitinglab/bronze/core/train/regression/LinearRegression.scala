@@ -39,7 +39,6 @@ class LinearRegression extends BaseTrain {
   }
 
   override def process(spark: SparkSession, df: Dataset[Row]): PipelineModel = {
-    showConfig(config)
     val stages = new ArrayBuffer[PipelineStage]()
     val lir = new org.apache.spark.ml.regression.LinearRegression()
 

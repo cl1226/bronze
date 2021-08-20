@@ -56,7 +56,6 @@ class RandomForestClassifier extends BaseTrain {
   }
 
   override def process(spark: SparkSession, df: Dataset[Row]): PipelineModel = {
-    showConfig(config)
     val stages = new ArrayBuffer[PipelineStage]()
 
     val randomForestClassifier = new classification.RandomForestClassifier()

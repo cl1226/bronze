@@ -58,7 +58,6 @@ class GBTRegressor extends BaseTrain {
   }
 
   override def process(spark: SparkSession, df: Dataset[Row]): PipelineModel = {
-    showConfig(config)
     val stages = new ArrayBuffer[PipelineStage]()
     val gbt = new regression.GBTRegressor()
     gbt.setMaxIter(config.getInt("maxIter"))

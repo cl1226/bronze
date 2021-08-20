@@ -138,7 +138,7 @@ object Bronze extends Logging {
         // if (ds.take(1).length > 0) {
         //  ds = f.process(sparkSession, ds)
         // }
-
+        showConfig(f.getConfig())
         f.getConfig().getString("plugin_name").toLowerCase match {
           case "split" => {
             val map = filterProcess(sparkSession, f, ds)
@@ -187,6 +187,15 @@ object Bronze extends Logging {
     AsciiArt.printAsciiArt("EXCITING")
     println("===================================================================")
     println("")
+  }
+
+  /**
+  * print config properties
+  */
+  private[bronze] def showConfig(config: Config) = {
+    println(s">>>[INFO] ${config.getString("plugin_name")} plugin options: ")
+    val options: ConfigRenderOptions = ConfigRenderOptions.concise.setFormatted(true)
+    println(config.root().render(options))
   }
 
   private[bronze] def filterProcess(
@@ -240,11 +249,12 @@ object Bronze extends Logging {
 
     if (staticInputs.nonEmpty) {
       val headInput = staticInputs.head
+      showConfig(headInput.getConfig())
       val ds = headInput.getDataset(sparkSession)
       registerInputTempView(headInput, ds)
 
       for (input <- staticInputs.slice(1, staticInputs.length)) {
-
+        showConfig(input.getConfig())
         val ds = input.getDataset(sparkSession)
         registerInputTempView(input, ds)
       }
