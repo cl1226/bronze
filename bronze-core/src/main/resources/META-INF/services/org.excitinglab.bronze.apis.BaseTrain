@@ -1,6 +1,7 @@
 org.excitinglab.bronze.core.train.classification.LogisticRegressionClassifier
 org.excitinglab.bronze.core.train.classification.DecisionTreeClassifier
 org.excitinglab.bronze.core.train.classification.RandomForestClassifier
+org.excitinglab.bronze.core.train.classification.NaiveBayesClassifier
 org.excitinglab.bronze.core.train.classification.GBTClassifier
 org.excitinglab.bronze.core.train.regression.LinearRegression
 org.excitinglab.bronze.core.train.regression.GBTRegressor

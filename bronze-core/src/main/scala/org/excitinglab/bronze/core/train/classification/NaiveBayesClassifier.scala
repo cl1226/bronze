@@ -9,13 +9,16 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 
 /**
- * 朴素贝叶斯  多分类算法模型
+ * 朴素贝叶斯
+ *  通常用于文本或文档分类，所有的输入特征值必须为非负数
  * 超参数：决定了模型本身的基本结构配置
- *
+ *  modelType: bernoulli | multinomial, default=multinomial
+ *  weightCol: 允许对不同的数据点赋值不同的权值, 如果未设置则默认所有的实例的权重为1
  * 训练参数：用于指定如何执行训练
- *
+ *  smoothing: 指定使用加法平滑(additive smoothing)时的正则化量，该设置有助于平滑分类数据，并通过
+ *             改变某些的预期概率来避免过拟合问题。default=1
  * 预测参数：指定模型如何实际进行预测而又不影响训练
- *
+ *  thresholds
  */
 class NaiveBayesClassifier extends BaseTrain {
 
@@ -34,22 +37,35 @@ class NaiveBayesClassifier extends BaseTrain {
 
     val defaultConfig = ConfigFactory.parseMap(
       Map(
-        "regParam" -> 0.0,
-        "elasticNetParam" -> 0.0,
-        "maxIter" -> 100,
-        "tol" -> 1E-6,
-        "family" -> "binary"
+        "labelCol" -> "label",
+        "featuresCol" -> "features",
+        "modelType" -> "multinomial",
+        "smoothing" -> 1.0
       )
     )
     config = config.withFallback(defaultConfig)
   }
 
   override def process(spark: SparkSession, df: Dataset[Row]): PipelineModel = {
+    showConfig(config)
     val stages = new ArrayBuffer[PipelineStage]()
 
     val naiveBayes = new classification.NaiveBayes()
-    naiveBayes.setLabelCol(config.getString("labelCol"))
-    naiveBayes.setFeaturesCol(config.getString("featuresCol"))
+      .setModelType(config.getString("modelType"))
+      .setLabelCol(config.getString("labelCol"))
+      .setFeaturesCol(config.getString("featuresCol"))
+      .setSmoothing(config.getDouble("smoothing"))
+
+    if (config.hasPath("weightCol")) {
+      naiveBayes.setWeightCol(config.getString("weightCol"))
+    }
+
+    if (config.hasPath("printParams") && config.getBoolean("printParams")) {
+      println(">>>[INFO] 模型参数: ")
+      println(naiveBayes.explainParams())
+    }
+
+    stages += naiveBayes
 
     // Fit the Pipeline.
     val startTime = System.nanoTime()

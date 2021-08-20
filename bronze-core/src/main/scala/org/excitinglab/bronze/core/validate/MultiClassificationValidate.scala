@@ -1,7 +1,7 @@
 package org.excitinglab.bronze.core.validate
 
 import org.apache.spark.ml.PipelineModel
-import org.apache.spark.ml.classification.{GBTClassificationModel, RandomForestClassificationModel}
+import org.apache.spark.ml.classification.{GBTClassificationModel, NaiveBayesModel, RandomForestClassificationModel}
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.excitinglab.bronze.apis.BaseValidate
@@ -23,6 +23,7 @@ class MultiClassificationValidate extends BaseValidate {
       .setPredictionCol("prediction")
       .setMetricName("accuracy")
     val accuracy = evaluator.evaluate(predictions)
+    println(s">>>Test accuracy = $accuracy")
     println(s">>>Test Error = ${(1.0 - accuracy)}")
 
     config.getString("modelType") match {
@@ -31,9 +32,10 @@ class MultiClassificationValidate extends BaseValidate {
         println(s">>>Learned classification forest model:\n ${rfModel.toDebugString}")
       }
       case "GBTClassifier" => {
-        val rfModel = model.stages.last.asInstanceOf[GBTClassificationModel]
-        println(s">>>Learned classification forest model:\n ${rfModel.toDebugString}")
+        val gbtModel = model.stages.last.asInstanceOf[GBTClassificationModel]
+        println(s">>>Learned classification forest model:\n ${gbtModel.toDebugString}")
       }
+      case _ =>
     }
 
     println(">>>预测结果: ")
