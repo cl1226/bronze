@@ -89,6 +89,8 @@ Bronze架构于Apache SparkMllib之上的机器学习平台，提供数据接入
 - Train Plugin
   ##### 分类模型
    - LogisticRegression *逻辑回归*
+   - DecisionTree *决策树*
+   - RandomForest *随机森林*
   ##### 回归模型
    - LinearRegression *线性回归*
    - GBTRegressor *梯度提升树回归*
