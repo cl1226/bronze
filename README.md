@@ -65,13 +65,13 @@ Bronze架构于Apache SparkMllib之上的机器学习平台，提供数据接入
 
 ### Bronze 支持的插件
 
-- Input Plugin
+#### Input Plugin
 
    - Fake 
    - File 
    - HDFS
 
-- Transform Plugin
+#### Transform Plugin
    ##### 通用转换器
    - Filter *过滤*
    - Schema *给输入数据集增加schema*
@@ -97,7 +97,7 @@ Bronze架构于Apache SparkMllib之上的机器学习平台，提供数据接入
    - StopWordRemover *删除常用词*
    - NGram *单词组合，即长度为n的单词序列*
    
-- Train Plugin
+#### Train Plugin
   ##### 分类模型
    - LogisticRegression *逻辑回归*
    - DecisionTree *决策树*
@@ -106,12 +106,13 @@ Bronze架构于Apache SparkMllib之上的机器学习平台，提供数据接入
    - LinearRegression *线性回归*
    - GBTRegressor *梯度提升树回归*
 
-- Test Plugin
+#### Test Plugin
    - BinaryClassificationValidate *二分类模型验证*
+   - MultiClassificationValidate *多分类模型验证*
    - LinearRegressionValidate *线性回归模型验证*
    - RegressionValidate *通用回归模型验证*
 
-- Output Plugin
+#### Output Plugin
 
    - Stdout
 
