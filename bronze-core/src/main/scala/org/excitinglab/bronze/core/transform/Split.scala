@@ -33,7 +33,6 @@ class Split extends BaseTransform {
 
   override def processSplit(spark: SparkSession, df: Dataset[Row]): Map[String, Dataset[Row]] = {
     val weights = config.getString("weights").split(",").map(_.trim.toDouble)
-    showConfig(config)
     config.hasPath("seed") match {
       case true => {
         val arrayDF = df.randomSplit(weights, config.getLong("seed"))

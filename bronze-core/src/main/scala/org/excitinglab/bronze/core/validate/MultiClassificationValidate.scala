@@ -24,7 +24,7 @@ class MultiClassificationValidate extends BaseValidate {
       .setMetricName("accuracy")
     val accuracy = evaluator.evaluate(predictions)
     println(s">>>Test accuracy = $accuracy")
-    println(s">>>Test Error = ${(1.0 - accuracy)}")
+    println(s">>>Test error = ${(1.0 - accuracy)}")
 
     config.getString("modelType") match {
       case "RandomForest" => {

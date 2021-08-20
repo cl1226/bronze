@@ -156,6 +156,7 @@ object Bronze extends Logging {
       trains.length > 0 match {
         case true => {
           println(s">>>[INFO] 模型: ${trains(0).describe}, 开始训练......")
+          showConfig(trains(0).getConfig())
           model = trains(0).process(sparkSession, sparkSession.read.table("bronze_training_data"))
         }
         case false =>

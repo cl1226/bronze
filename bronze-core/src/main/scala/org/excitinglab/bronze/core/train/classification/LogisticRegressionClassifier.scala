@@ -59,8 +59,7 @@ class LogisticRegressionClassifier extends BaseTrain {
         "regParam" -> 0.0,
         "elasticNetParam" -> 0.0,
         "maxIter" -> 100,
-        "tol" -> 1E-6,
-        "family" -> "binary"
+        "tol" -> 1E-6
       )
     )
     config = config.withFallback(defaultConfig)
@@ -74,7 +73,7 @@ class LogisticRegressionClassifier extends BaseTrain {
       .setElasticNetParam(config.getDouble("elasticNetParam"))
       .setMaxIter(config.getInt("maxIter"))
       .setTol(config.getDouble("tol"))
-      .setFamily(config.getString("family"))
+
     if (config.hasPath("featureCol")) {
       lor.setFeaturesCol(config.getString("featuresCol"))
     }
@@ -83,6 +82,9 @@ class LogisticRegressionClassifier extends BaseTrain {
     }
     if (config.hasPath("fitIntercept")) {
       lor.setFitIntercept(config.getBoolean("fitIntercept"))
+    }
+    if (config.hasPath("family")) {
+      lor.setFamily(config.getString("family"))
     }
 
     if (config.hasPath("printParams") && config.getBoolean("printParams")) {

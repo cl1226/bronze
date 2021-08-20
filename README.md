@@ -96,6 +96,8 @@ Bronze架构于Apache SparkMllib之上的机器学习平台，提供数据接入
    - Tokenizer *文本分词*
    - StopWordRemover *删除常用词*
    - NGram *单词组合，即长度为n的单词序列*
+   - HashingTF *转为成固定长度的特征向量*
+   - TFIDF *词频-逆向文件频率*
    
 #### Train Plugin
   ##### 分类模型

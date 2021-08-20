@@ -1,5 +1,6 @@
 package org.excitinglab.bronze.core.output.batch
 
+import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.excitinglab.bronze.apis.BaseOutput
 import org.excitinglab.bronze.config.{Config, ConfigFactory}
@@ -33,20 +34,30 @@ class Stdout extends BaseOutput {
     if (config.hasPath("serializer")) {
       format = config.getString("serializer")
     }
+    val finalDF = config.hasPath("columns") match {
+      case true => {
+        val columns = config.getString("columns")
+        df.select(columns.split(",").map(c => col(c.trim)): _*)
+      }
+      case _ => {
+        df
+      }
+    }
+    df.select()
     format match {
       case "plain" => {
         if (limit == -1) {
-          df.show(Int.MaxValue, false)
+          finalDF.show(Int.MaxValue, false)
         } else if (limit > 0) {
-          df.show(limit, false)
+          finalDF.show(limit, false)
         }
       }
       case "json" => {
         if (limit == -1) {
-          df.toJSON.take(Int.MaxValue).foreach(s => println(s))
+          finalDF.toJSON.take(Int.MaxValue).foreach(s => println(s))
 
         } else if (limit > 0) {
-          df.toJSON.take(limit).foreach(s => println(s))
+          finalDF.toJSON.take(limit).foreach(s => println(s))
         }
       }
       case "schema" => {
