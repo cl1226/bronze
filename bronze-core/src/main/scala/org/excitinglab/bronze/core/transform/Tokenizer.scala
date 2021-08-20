@@ -1,10 +1,14 @@
 package org.excitinglab.bronze.core.transform
 
+import com.huaban.analysis.jieba.JiebaSegmenter
+import com.huaban.analysis.jieba.JiebaSegmenter.SegMode
 import org.apache.spark.ml.feature
 import org.apache.spark.ml.feature.RegexTokenizer
-import org.apache.spark.sql.{Dataset, Row, SparkSession}
+import org.apache.spark.sql.{Dataset, Row, SparkSession, functions}
 import org.excitinglab.bronze.apis.BaseTransform
 import org.excitinglab.bronze.config.{Config, ConfigFactory}
+
+import scala.collection.JavaConverters.asScalaBufferConverter
 
 /**
  * 分词 Tokenizer，根据给定的字符对一个字符串进行分词
@@ -19,26 +23,46 @@ class Tokenizer extends BaseTransform {
   var config: Config = ConfigFactory.empty()
 
   override def process(spark: SparkSession, df: Dataset[Row]): Dataset[Row] = {
-    config.hasPath("pattern") match {
-      case true => {
-        val regexTokenizer = new RegexTokenizer()
-        regexTokenizer.setInputCol(config.getString("inputCol"))
-        if (config.hasPath("outputCol")) {
-          regexTokenizer.setOutputCol(config.getString("outputCol"))
+    config.getString("type").toLowerCase match {
+      case "tokenizer" => {
+        config.hasPath("pattern") match {
+          case true => {
+            val regexTokenizer = new RegexTokenizer()
+            regexTokenizer.setInputCol(config.getString("inputCol"))
+            if (config.hasPath("outputCol")) {
+              regexTokenizer.setOutputCol(config.getString("outputCol"))
+            }
+            regexTokenizer.setPattern(config.getString("pattern"))
+            regexTokenizer.setGaps(config.getBoolean("gaps"))
+            regexTokenizer.transform(df)
+          }
+          case _ => {
+            val tokenizer = new feature.Tokenizer()
+            tokenizer.setInputCol(config.getString("inputCol"))
+            if (config.hasPath("outputCol")) {
+              tokenizer.setOutputCol(config.getString("outputCol"))
+            }
+            tokenizer.transform(df)
+          }
         }
-        regexTokenizer.setPattern(config.getString("pattern"))
-        regexTokenizer.setGaps(config.getBoolean("gaps"))
-        regexTokenizer.transform(df)
       }
-      case _ => {
-        val tokenizer = new feature.Tokenizer()
-        tokenizer.setInputCol(config.getString("inputCol"))
-        if (config.hasPath("outputCol")) {
-          tokenizer.setOutputCol(config.getString("outputCol"))
+      case "jieba" => {
+        val outputCol = config.hasPath("outputCol") match {
+          case true => config.getString("outputCol")
+          case _ => "jieba_output"
         }
-        tokenizer.transform(df)
+        val inputCol = config.getString("inputCol")
+
+        val transformUDF = functions.udf[Array[String], String](jieba_analysis)
+        df.withColumn(outputCol, transformUDF(df(inputCol)))
       }
     }
+
+  }
+
+  def jieba_analysis(str: String): Array[String] = {
+    val tokens = new JiebaSegmenter().sentenceProcess(str)
+    tokens.toArray.map(_.toString)
   }
 
   /**
@@ -55,7 +79,7 @@ class Tokenizer extends BaseTransform {
    * Return true and empty string if config is valid, return false and error message if config is invalid.
    */
   override def checkConfig(): (Boolean, String) = {
-    val requiredOptions = List("inputCol")
+    val requiredOptions = List("inputCol", "type")
     val nonExistsOptions = requiredOptions
       .map(optionName => (optionName, config.hasPath(optionName)))
       .filter { p =>

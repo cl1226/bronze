@@ -44,8 +44,8 @@ class File extends BaseStaticInput {
         }
 
         config.hasPath("header") && config.getBoolean("header") match {
-          case true => reader.option("header", true).option("delimiter", delimiter).csv(path)
-          case _ => reader.option("delimiter", delimiter).csv(path)
+          case true => reader.option("header", true).option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").option("delimiter", delimiter).csv(path)
+          case _ => reader.option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ").option("delimiter", delimiter).csv(path)
         }
       }
       case _ => reader.format(format).load(path)
