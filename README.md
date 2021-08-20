@@ -3,27 +3,38 @@ Bronze架构于Apache SparkMllib之上的机器学习平台，提供数据接入
 
 -----
 ### Bronze结构
-| Input |
+
+| 数据采集 |
 | ----- |
 
 &darr;
 
-| Transform |
+| 数据预处理 |
 | ----- |
 
 &darr;
 
-| Train |
+| 特征工程 |
 | ----- |
 
 &darr;
 
-| Test |
+| 模型训练 |
 | ----- |
 
 &darr;
 
-| Output |
+| 模型验证 |
+| ----- |
+
+&darr;
+
+| 模型持久化 |
+| ----- |
+
+&darr;
+
+| 模型结果输出 |
 | ----- |
 --------
 ### Bronze支持的算法模型
