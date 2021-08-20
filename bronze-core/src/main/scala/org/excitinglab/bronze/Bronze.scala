@@ -139,14 +139,14 @@ object Bronze extends Logging {
         //  ds = f.process(sparkSession, ds)
         // }
 
-        f.getConfig().hasPath("split") match {
-          case true => {
+        f.getConfig().getString("plugin_name").toLowerCase match {
+          case "split" => {
             val map = filterProcess(sparkSession, f, ds)
             for ((k, v) <- map) {
               registerTempView(k, v)
             }
           }
-          case false => {
+          case _ => {
             ds = filterProcess(sparkSession, f, ds).get("bronze_training_data").get
             registerFilterTempView(f, ds)
           }
@@ -202,8 +202,8 @@ object Bronze extends Logging {
       case false => ds
     }
 
-    config.hasPath("split") match {
-      case true => transform.processSplit(sparkSession, fromDs)
+    config.getString("plugin_name").toLowerCase match {
+      case "split" => transform.processSplit(sparkSession, fromDs)
       case _ =>  {
         Map("bronze_training_data" -> transform.process(sparkSession, fromDs))
       }
