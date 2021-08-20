@@ -13,7 +13,7 @@ Bronze架构于Apache SparkMllib之上的机器学习平台，提供数据接入
 
 &darr;
 
-| Machine learning |
+| Train |
 | ----- |
 
 &darr;
@@ -56,7 +56,9 @@ Bronze架构于Apache SparkMllib之上的机器学习平台，提供数据接入
 
 - Input Plugin
 
-Fake, File, HDFS
+   - Fake 
+   - File 
+   - HDFS
 
 - Transform Plugin
    ##### 通用转换器
@@ -64,6 +66,7 @@ Fake, File, HDFS
    - Schema *给输入数据集增加schema*
    - Sql *通过sql方式操作数据集*
    - LabeledPoint *生成标注点*
+   - Split *数据集切分为训练集、测试集*
    ##### 高级转换器
    - RFormula *允许在声明式语言指定转换*
    - VectorAssembler *将所有特征组合成一个大的向量*   
@@ -83,13 +86,21 @@ Fake, File, HDFS
    - StopWordRemover *删除常用词*
    - NGram *单词组合，即长度为n的单词序列*
    
-- Machine learning Plugin
+- Train Plugin
+  ##### 分类模型
+   - LogisticRegression *逻辑回归*
+  ##### 回归模型
+   - LinearRegression *线性回归*
+   - GBTRegressor *梯度提升树回归*
 
-LinearRegression, LogisticRegression
+- Test Plugin
+   - BinaryClassificationValidate *二分类模型验证*
+   - LinearRegressionValidate *线性回归模型验证*
+   - RegressionValidate *通用回归模型验证*
 
 - Output Plugin
 
-Stdout
+   - Stdout
 
 ### 环境依赖
 1. Java运行环境，JDK Version >= 8
