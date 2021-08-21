@@ -1,7 +1,6 @@
 package org.excitinglab.bronze.core.transform
 
 import com.huaban.analysis.jieba.JiebaSegmenter
-import com.huaban.analysis.jieba.JiebaSegmenter.SegMode
 import org.ansj.recognition.impl.StopRecognition
 import org.ansj.splitWord.analysis.ToAnalysis
 import org.apache.spark.ml.feature
@@ -9,8 +8,6 @@ import org.apache.spark.ml.feature.RegexTokenizer
 import org.apache.spark.sql.{Dataset, Row, SparkSession, functions}
 import org.excitinglab.bronze.apis.BaseTransform
 import org.excitinglab.bronze.config.{Config, ConfigFactory}
-
-import scala.collection.JavaConverters.asScalaBufferConverter
 
 /**
  * 分词 Tokenizer，根据给定的字符对一个字符串进行分词

@@ -50,10 +50,9 @@ class MultilayerPerceptronClassifier extends BaseTrain {
     if (config.hasPath("seed")) {
       multilayerPerceptronClassifier.setSeed(config.getLong("seed"))
     }
-    if (config.hasPath("layers")) {
-      val layers = config.getString("layers").split(",").map(_.trim.toInt)
-      multilayerPerceptronClassifier.setLayers(layers)
-    }
+
+    val layers = config.getString("layers").split(",").map(_.trim.toInt)
+    multilayerPerceptronClassifier.setLayers(layers)
 
     if (config.hasPath("printParams") && config.getBoolean("printParams")) {
       println(">>>[INFO] 模型参数: ")
