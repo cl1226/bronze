@@ -2,6 +2,8 @@ package org.excitinglab.bronze.core.transform
 
 import com.huaban.analysis.jieba.JiebaSegmenter
 import com.huaban.analysis.jieba.JiebaSegmenter.SegMode
+import org.ansj.recognition.impl.StopRecognition
+import org.ansj.splitWord.analysis.ToAnalysis
 import org.apache.spark.ml.feature
 import org.apache.spark.ml.feature.RegexTokenizer
 import org.apache.spark.sql.{Dataset, Row, SparkSession, functions}
@@ -56,13 +58,30 @@ class Tokenizer extends BaseTransform {
         val transformUDF = functions.udf[Array[String], String](jieba_analysis)
         df.withColumn(outputCol, transformUDF(df(inputCol)))
       }
+      case "ansj" => {
+        val outputCol = config.hasPath("outputCol") match {
+          case true => config.getString("outputCol")
+          case _ => "ansj_output"
+        }
+        val inputCol = config.getString("inputCol")
+
+        val transformUDF = functions.udf[Array[String], String](ansj_analysis)
+        df.withColumn(outputCol, transformUDF(df(inputCol)))
+      }
     }
 
   }
 
-  def jieba_analysis(str: String): Array[String] = {
+  private def jieba_analysis(str: String): Array[String] = {
     val tokens = new JiebaSegmenter().sentenceProcess(str)
     tokens.toArray.map(_.toString)
+  }
+
+  private def ansj_analysis(str: String): Array[String] = {
+    val filter = new StopRecognition()
+    filter.insertStopWords("w")
+    val tokens = ToAnalysis.parse(str).recognition(filter).toStringWithOutNature(" ")
+    tokens.split(" ").map(_.toString)
   }
 
   /**
