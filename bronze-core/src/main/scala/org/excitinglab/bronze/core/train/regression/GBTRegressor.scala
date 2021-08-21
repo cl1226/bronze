@@ -45,6 +45,8 @@ class GBTRegressor extends BaseTrain {
 
     val defaultConfig = ConfigFactory.parseMap(
       Map(
+        "labelCol" -> "label",
+        "featuresCol" -> "features",
         "maxDepth" -> 5,
         "maxBins" -> 32,
         "impurity" -> "variance",
@@ -67,13 +69,9 @@ class GBTRegressor extends BaseTrain {
       .setMinInfoGain(config.getDouble("minInfoGain"))
       .setMinInstancesPerNode(config.getInt("minInstancesPerNode"))
       .setStepSize(config.getDouble("stepSize"))
+      .setLabelCol(config.getString("labelCol"))
+      .setFeaturesCol(config.getString("featuresCol"))
 
-    if (config.hasPath("featureCol")) {
-      gbt.setFeaturesCol(config.getString("featuresCol"))
-    }
-    if (config.hasPath("labelCol")) {
-      gbt.setLabelCol(config.getString("labelCol"))
-    }
     if (config.hasPath("checkpointInterval")) {
       spark.sparkContext.setCheckpointDir(config.getString("checkpointDir"))
       gbt.setCheckpointInterval(config.getInt("checkpointInterval"))

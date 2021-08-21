@@ -1,5 +1,6 @@
 package org.excitinglab.bronze.core.train.classification
 
+import org.apache.spark.ml.classification.LinearSVC
 import org.apache.spark.ml.{Pipeline, PipelineModel, PipelineStage, classification}
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.excitinglab.bronze.apis.BaseTrain
@@ -9,13 +10,8 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 
 /**
- * 逻辑回归
+ * LinearSVM 线性支持向量机
  * 超参数：决定了模型本身的基本结构配置
- *  family: binary（仅两个不同的标签，对应二分类）| multinomial（两个或更多个不同的标签，对应多分类）
- *  elasticNetParam: 从0到1的浮点值。该参数依照弹性网络正则化的方法将L1正则化和L2正则化混合（即两者的线性组合）
- *                   L1正则化（值1）将在模型中产生稀疏性，因为某些特征权重将变成零
- *                   L2正则化（值0）不会造成稀疏，因为特定特征的相应权重只会趋于零而不会等于零
- *                   大多数情况下，通过多次测试来调整这个值
  *  fitIntercept: true | false。此超参数决定是否适应截距。通常情况下，如果我们没有对训练数据执行标准化，则需要添加截距
  *  regParam: 大于等于0的值。确定在目标函数中正则化项的权重，它的选择和数据集的噪声情况和数据维度有关，最好尝试多个值（0、0.01、0.1、1）
  *  standardization: true | false。用于决定在将输入数据传递到模型之前是否要对其标准化
@@ -25,28 +21,15 @@ import scala.collection.mutable.ArrayBuffer
  *       默认值为1.0E-6。这个不应该是要调整的第一个参数
  *  weightCol: 权重列的名称，用于赋予某些行更大的权重。例如，在10000个样例中你知道哪些样本的标签比其他样本的标签更精确，就可以赋予那些
  *             更有用的样本以更大的权值
- * 预测参数：指定模型如何实际进行预测而又不影响训练
- *  threshold: 0~1的double值。此参数是预测时的概率阈值，可以根据需要调整此参数以平衡误报（false positive）和漏报（false negative）。
- *             例如，如果误报的成本高昂，可能希望该预测阈值非常高
- *  thresholds: 该参数允许在进行多分类的时候指定每个类的阈值数组，用处和上面的threshold类似
- * 模型训练好了之后，通过观察系数和截距项来获取有关模型的信息。系数对应于各特征的权重（每个特征权重乘以各特征来计算预测值），而截距项是斜线
- * 截距的值（如果我们在指定模型时选择了适当的截距参数fitIntercept）
- * 二分类： model.coefficients  model.intercept
- * 多分类： model.coefficientMatrix model.interceptVector
- * 模型摘要：给出最终训练模型的相关信息。
- *  模型照耀目前仅可用于二分类逻辑回归问题。利用二分类摘要，可以得到关于模型本身的各种信息，包括ROC曲线下的面积、f值、准确率、召回率和ROC曲线
- *  model.summary
- *  模型到达最终结果状态的速度会显示在目标历史（objective history）中。是一个Double类型的数组，包含了每次训练迭代时模型到底表现如何。
- *  summary.objectiveHistory
  */
-class LogisticRegressionClassifier extends BaseTrain {
+class LinearSVCClassifier extends BaseTrain {
 
   var config: Config = ConfigFactory.empty()
 
   /**
    * 模型描述
    */
-  override def describe: String = "(LogisticRegression)逻辑回归分类模型"
+  override def describe: String = "LinearSVM(线性支持向量机模型)"
 
   /**
    * Prepare before running, do things like set config default value, add broadcast variable, accumulator.
@@ -56,13 +39,13 @@ class LogisticRegressionClassifier extends BaseTrain {
 
     val defaultConfig = ConfigFactory.parseMap(
       Map(
-        "labelCol" -> "label",
-        "featuresCol" -> "features",
-        "regParam" -> 0.0,
-        "elasticNetParam" -> 0.0,
         "maxIter" -> 100,
+        "regParam" -> 0.0,
+        "fitIntercept" -> true,
         "tol" -> 1E-6,
-        "fitIntercept" -> true
+        "standardization" -> true,
+        "labelCol" -> "label",
+        "featuresCol" -> "features"
       )
     )
     config = config.withFallback(defaultConfig)
@@ -71,25 +54,25 @@ class LogisticRegressionClassifier extends BaseTrain {
   override def process(spark: SparkSession, df: Dataset[Row]): PipelineModel = {
     val stages = new ArrayBuffer[PipelineStage]()
 
-    val lor = new classification.LogisticRegression()
+    val linearSVC = new LinearSVC()
       .setLabelCol(config.getString("labelCol"))
       .setFeaturesCol(config.getString("featuresCol"))
-      .setRegParam(config.getDouble("regParam"))
-      .setElasticNetParam(config.getDouble("elasticNetParam"))
       .setMaxIter(config.getInt("maxIter"))
-      .setTol(config.getDouble("tol"))
+      .setRegParam(config.getDouble("regParam"))
       .setFitIntercept(config.getBoolean("fitIntercept"))
+      .setTol(config.getDouble("tol"))
+      .setStandardization(config.getBoolean("standardization"))
 
-    if (config.hasPath("family")) {
-      lor.setFamily(config.getString("family"))
+    if (config.hasPath("weightCol")) {
+      linearSVC.setWeightCol(config.getString("weightCol"))
     }
 
     if (config.hasPath("printParams") && config.getBoolean("printParams")) {
       println(">>>[INFO] 模型参数: ")
-      println(lor.explainParams())
+      println(linearSVC.explainParams())
     }
 
-    stages += lor
+    stages += linearSVC
 
     // Fit the Pipeline.
     val startTime = System.nanoTime()
@@ -114,7 +97,5 @@ class LogisticRegressionClassifier extends BaseTrain {
   /**
    * Return true and empty string if config is valid, return false and error message if config is invalid.
    */
-  override def checkConfig(): (Boolean, String) = {
-    (true, "")
-  }
+  override def checkConfig(): (Boolean, String) = (true, "")
 }

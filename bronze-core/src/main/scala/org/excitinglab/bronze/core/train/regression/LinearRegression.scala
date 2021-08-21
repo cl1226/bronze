@@ -29,6 +29,8 @@ class LinearRegression extends BaseTrain {
 
     val defaultConfig = ConfigFactory.parseMap(
       Map(
+        "labelCol" -> "label",
+        "featuresCol" -> "features",
         "regParam" -> 0.0,
         "elasticNetParam" -> 0.0,
         "maxIter" -> 100,
@@ -41,25 +43,12 @@ class LinearRegression extends BaseTrain {
   override def process(spark: SparkSession, df: Dataset[Row]): PipelineModel = {
     val stages = new ArrayBuffer[PipelineStage]()
     val lir = new org.apache.spark.ml.regression.LinearRegression()
-
-    if (config.hasPath("featureCol")) {
-      lir.setFeaturesCol(config.getString("featuresCol"))
-    }
-    if (config.hasPath("labelCol")) {
-      lir.setLabelCol(config.getString("labelCol"))
-    }
-    if (config.hasPath("regParam")) {
-      lir.setRegParam(config.getDouble("regParam"))
-    }
-    if (config.hasPath("elasticNetParam")) {
-      lir.setElasticNetParam(config.getDouble("elasticNetParam"))
-    }
-    if (config.hasPath("maxIter")) {
-      lir.setMaxIter(config.getInt("maxIter"))
-    }
-    if (config.hasPath("tol")) {
-      lir.setTol(config.getDouble("tol"))
-    }
+      .setLabelCol(config.getString("labelCol"))
+      .setFeaturesCol(config.getString("featuresCol"))
+      .setRegParam(config.getDouble("regParam"))
+      .setElasticNetParam(config.getDouble("elasticNetParam"))
+      .setMaxIter(config.getInt("maxIter"))
+      .setTol(config.getDouble("tol"))
 
     if (config.hasPath("printParams") && config.getBoolean("printParams")) {
       println(">>>[INFO] 模型参数: ")

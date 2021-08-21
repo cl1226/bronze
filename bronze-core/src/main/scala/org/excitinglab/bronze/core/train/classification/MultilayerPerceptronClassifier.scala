@@ -20,6 +20,8 @@ class MultilayerPerceptronClassifier extends BaseTrain {
 
     val defaultConfig = ConfigFactory.parseMap(
       Map(
+        "labelCol" -> "label",
+        "featuresCol" -> "features",
         "maxIter" -> 100,
         "solver" -> "l-bfgs",
         "blockSize" -> 128,
@@ -44,9 +46,8 @@ class MultilayerPerceptronClassifier extends BaseTrain {
       .setBlockSize(config.getInt("blockSize"))
       .setTol(config.getDouble("tol"))
       .setStepSize(config.getDouble("stepSize"))
-    if (config.hasPath("featuresCol")) {
-      multilayerPerceptronClassifier.setFeaturesCol(config.getString("featuresCol"))
-    }
+      .setLabelCol(config.getString("labelCol"))
+      .setFeaturesCol(config.getString("featuresCol"))
     if (config.hasPath("seed")) {
       multilayerPerceptronClassifier.setSeed(config.getLong("seed"))
     }
@@ -86,7 +87,7 @@ class MultilayerPerceptronClassifier extends BaseTrain {
    * Return true and empty string if config is valid, return false and error message if config is invalid.
    */
   override def checkConfig(): (Boolean, String) = {
-    val requiredOptions = List("labelCol", "layers")
+    val requiredOptions = List("layers")
     val nonExistsOptions = requiredOptions.map(optionName => (optionName, config.hasPath(optionName))).filter { p =>
       val (optionName, exists) = p
       !exists

@@ -48,6 +48,8 @@ class GBTClassifier extends BaseTrain {
 
     val defaultConfig = ConfigFactory.parseMap(
       Map(
+        "labelCol" -> "label",
+        "featuresCol" -> "features",
         "maxDepth" -> 5,
         "maxBins" -> 32,
         "impurity" -> "variance",

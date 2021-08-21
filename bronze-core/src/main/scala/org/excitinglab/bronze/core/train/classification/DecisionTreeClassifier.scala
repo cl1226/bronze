@@ -45,7 +45,9 @@ class DecisionTreeClassifier extends BaseTrain {
         "maxBins" -> 32,
         "impurity" -> "gini",
         "minInfoGain" -> 0,
-        "minInstancesPerNode" -> 1
+        "minInstancesPerNode" -> 1,
+        "labelCol" -> "label",
+        "featuresCol" -> "features"
       )
     )
     config = config.withFallback(defaultConfig)
