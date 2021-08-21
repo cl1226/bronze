@@ -7,7 +7,7 @@ object TestConfig {
 
   def main(args: Array[String]): Unit = {
 
-    new ConfigBuilder("E:\\workspace\\bronze\\bronze-core\\src\\main\\resources\\application.conf")
+    new ConfigBuilder("E:\\workspace\\bronze\\config\\application.conf")
 
   }
 
