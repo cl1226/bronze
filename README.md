@@ -74,33 +74,56 @@ Bronze架构于Apache SparkMllib之上的机器学习平台，提供数据接入
 #### Transform Plugin
    ##### 通用转换器
    - Filter *过滤*
-   - Schema *给输入数据集增加schema*
+   - Schema *将输入数据集结构化*
    - Sql *通过sql方式操作数据集*
    - LabeledPoint *生成标注点*
    - Split *数据集切分为训练集、测试集*
-   ##### 特征选择(Feature Selection)
+   ##### 特征选择(Feature Selections)
 >在特征向量中选择出那些”优秀“的特征，组成新的、更”精简“的特征向量的过程。
    - VectorSlicer *输入特征向量，输出原始特征向量子集*
    - RFormula *允许在声明式语言指定转换*
    - ChiSqSelector *精简特征向量*
-   - VectorAssembler *将所有特征组合成一个大的向量*   
-   - SQLTransformer *使用sql的方式对数据做转换，不需要是要表名，而是使用关键字__THIS__*
-   ##### 处理连续特征
-   - Bucketizer *基于硬编码分桶*
-   - QuantileDiscretizer *基于数据百分比分桶*
-   - StandardScaler *将一组特征值归一化为平均值为0而标准偏差为1的一组新值*
-   - MinMaxScaler *基于给定的最小值到最大值按比例缩放*
-   - MaxAbsScaler *将每个值除以该特征的最大绝对值来缩放数据*
-   - ElementwiseProduct *用一个缩放向量对某向量中的每个值以不同的尺度进行缩放*
-   - Normalizer *使用某个幂范数来缩放多维向量*
+   
+   ##### 特征转换(Feature Transforms)
+   ###### 特征索引转换
    - StringIndexer *将字符串映射到不同的数字id*
    - IndexToString *将索引的数值类型映射回原始的类别之*
-   ##### 文本数据转换器
+   - VectorIndexer *向量索引化*
+   ###### 文档转换
    - Tokenizer *文本分词*
    - StopWordRemover *删除常用词*
    - NGram *单词组合，即长度为n的单词序列*
-   - HashingTF *转为成固定长度的特征向量*
-   - TFIDF *词频-逆向文件频率*
+   ###### 正则化
+   - Normalizer *使用某个幂范数来缩放多维向量*
+   ###### 标准化
+   - StandardScaler *将一组特征值归一化为平均值为0而标准偏差为1的一组新值*
+   ###### 归一化
+   - MinMaxScaler *基于给定的最小值到最大值按比例缩放*
+   - MaxAbsScaler *将每个值除以该特征的最大绝对值来缩放数据*
+   ###### 二值化
+   - Binarizer *特征值大于该阈值时为1, 小于等于则为0*
+   ###### 离散化
+   - Bucketizer *将连续的数据放入已经设置好的n个桶中*
+   - QuantileDiscretizer *根据设置的桶的数量对连续变量进行拆分，且它可以处理NaN值*
+   ###### 独热编码
+   - OneHotEncoder *将分类转换为二进制向量, 该向量中只有一位为1，其他为0*
+   ###### 缺失值补全
+   - Imputer *对列中的NaN使用中位数或者平均数进行补全*
+   ###### 特征构造
+   - PolynomialExpansion *将特征进行多项式展开形成新的特征*
+   - Interaction *将多列向量构造成一个向量，新向量的内容是每个输入列的每个值与其他列组合的乘积*
+   - ElementwiseProduct *通过将向量列与一个标量列进行乘积来对向量进行缩放*
+   - VectorAssembler *对输入列进行拼接生成一个新的向量*
+   ###### 降维
+   - PCA *主成分分析*
+   ###### 其他
+   - SQLTransformer *使用sql的方式对数据做转换，不需要是要表名，而是使用关键字__THIS__*
+
+   ##### 特征提取(Feature Extractors)
+   - TF-IDF *词频-逆向文件频率，提取文档关键词*
+   - Word2Vec *将词语或者文章转换成词向量*
+   - CountVectorizer *类似TF-IDF*
+   - FeatureHasher *特征哈希，将原来的N维特征转换为一个M维的特征向量，一般M<N*
    
 #### Train Plugin
   ##### 分类模型
