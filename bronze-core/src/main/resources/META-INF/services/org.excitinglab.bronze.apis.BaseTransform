@@ -27,3 +27,4 @@ org.excitinglab.bronze.core.transform.ChiSqSelector
 org.excitinglab.bronze.core.transform.VectorIndexer
 org.excitinglab.bronze.core.transform.Binarizer
 org.excitinglab.bronze.core.transform.Imputer
+org.excitinglab.bronze.core.transform.PolynomialExpansion
