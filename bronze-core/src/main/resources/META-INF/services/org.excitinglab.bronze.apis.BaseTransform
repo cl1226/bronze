@@ -24,3 +24,4 @@ org.excitinglab.bronze.core.transform.Tfidf
 org.excitinglab.bronze.core.transform.CountVectorizer
 org.excitinglab.bronze.core.transform.VectorSlicer
 org.excitinglab.bronze.core.transform.ChiSqSelector
+org.excitinglab.bronze.core.transform.VectorIndexer
