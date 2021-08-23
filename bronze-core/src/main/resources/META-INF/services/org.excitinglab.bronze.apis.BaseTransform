@@ -25,3 +25,4 @@ org.excitinglab.bronze.core.transform.CountVectorizer
 org.excitinglab.bronze.core.transform.VectorSlicer
 org.excitinglab.bronze.core.transform.ChiSqSelector
 org.excitinglab.bronze.core.transform.VectorIndexer
+org.excitinglab.bronze.core.transform.Binarizer
