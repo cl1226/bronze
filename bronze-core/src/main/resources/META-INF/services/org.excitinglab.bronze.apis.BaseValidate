@@ -3,3 +3,4 @@ org.excitinglab.bronze.core.validate.LinearRegressionValidate
 org.excitinglab.bronze.core.validate.RegressionValidate
 org.excitinglab.bronze.core.validate.MultiClassificationValidate
 org.excitinglab.bronze.core.validate.ClusteringValidate
+org.excitinglab.bronze.core.validate.GeneralizedLinearRegressionValidate
