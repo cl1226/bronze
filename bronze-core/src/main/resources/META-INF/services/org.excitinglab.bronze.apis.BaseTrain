@@ -8,3 +8,4 @@ org.excitinglab.bronze.core.train.regression.LinearRegression
 org.excitinglab.bronze.core.train.regression.GBTRegressor
 org.excitinglab.bronze.core.train.clustering.KMeansCluster
 org.excitinglab.bronze.core.train.clustering.BisectingKMeansCluster
+org.excitinglab.bronze.core.train.clustering.GaussianMixtureCluster

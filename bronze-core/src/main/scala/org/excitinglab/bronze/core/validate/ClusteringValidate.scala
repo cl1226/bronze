@@ -1,7 +1,7 @@
 package org.excitinglab.bronze.core.validate
 
 import org.apache.spark.ml.PipelineModel
-import org.apache.spark.ml.clustering.{BisectingKMeansModel, KMeansModel}
+import org.apache.spark.ml.clustering.{BisectingKMeansModel, GaussianMixtureModel, KMeansModel}
 import org.apache.spark.ml.evaluation.ClusteringEvaluator
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
@@ -35,6 +35,13 @@ class ClusteringValidate extends BaseValidate {
         val summary = bisectingKMeansModel.summary
         println(s">>>Cluster Centers count: ${summary.clusterSizes.length}")
         bisectingKMeansModel.clusterCenters.foreach(println)
+      }
+      case "gaussianmixture" => {
+        val gaussianMixtureModel = model.stages.last.asInstanceOf[GaussianMixtureModel]
+        for (i <- 0 until gaussianMixtureModel.getK) {
+          println(s"Gaussian $i:\nweight=${gaussianMixtureModel.weights(i)}\n" +
+            s"mu=${gaussianMixtureModel.gaussians(i).mean}\nsigma=\n${gaussianMixtureModel.gaussians(i).cov}\n")
+        }
       }
       case _ =>
     }
