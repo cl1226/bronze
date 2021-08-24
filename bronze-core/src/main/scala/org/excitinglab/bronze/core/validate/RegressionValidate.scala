@@ -2,7 +2,7 @@ package org.excitinglab.bronze.core.validate
 
 import org.apache.spark.ml.PipelineModel
 import org.apache.spark.ml.evaluation.RegressionEvaluator
-import org.apache.spark.ml.regression.{DecisionTreeRegressionModel, GBTRegressionModel}
+import org.apache.spark.ml.regression.{DecisionTreeRegressionModel, GBTRegressionModel, RandomForestRegressionModel}
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.excitinglab.bronze.apis.BaseValidate
 import org.excitinglab.bronze.config.{Config, ConfigFactory}
@@ -31,6 +31,10 @@ class RegressionValidate extends BaseValidate {
       case "decisionTreeRegression" => {
         val dtrModel = model.stages.last.asInstanceOf[DecisionTreeRegressionModel]
         println(s">>>Learned regression tree model:\n ${dtrModel.toDebugString}")
+      }
+      case "RandomForestRegressor" => {
+        val rfr = model.stages.last.asInstanceOf[RandomForestRegressionModel]
+        println(s">>>Learned regression tree model:\n ${rfr.toDebugString}")
       }
       case _ =>
     }
