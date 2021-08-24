@@ -19,6 +19,7 @@ object BronzeDataType extends Serializable {
       case "date" => DataTypes.DateType
       case "timestamp" => DataTypes.TimestampType
       case "binary" => DataTypes.BinaryType
+      case "short" => DataTypes.ShortType
     }
   }
 

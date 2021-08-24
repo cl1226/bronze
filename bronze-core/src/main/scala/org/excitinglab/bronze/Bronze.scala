@@ -131,13 +131,6 @@ object Bronze extends Logging {
       var ds = headDs
 
       for (f <- transforms) {
-        // WARN: we do not check whether dataset is empty or not
-        // because take(n)(limit in logic plan) do not support pushdown in spark sql
-        // To address the limit n problem, we can implemented in datasource code(such as hbase datasource)
-        // or just simply do not take(n).
-        // if (ds.take(1).length > 0) {
-        //  ds = f.process(sparkSession, ds)
-        // }
         showConfig(f.getConfig())
         f.getConfig().getString("plugin_name").toLowerCase match {
           case "split" => {
@@ -157,7 +150,14 @@ object Bronze extends Logging {
         case true => {
           println(s">>>[INFO] 模型: ${trains(0).describe}, 开始训练......")
           showConfig(trains(0).getConfig())
-          model = trains(0).process(sparkSession, sparkSession.read.table("bronze_training_data"))
+          sparkSession.sqlContext.tableNames.contains("bronze_training_data") match {
+            case true => {
+              model = trains(0).process(sparkSession, sparkSession.read.table("bronze_training_data"))
+            }
+            case false => {
+              model = trains(0).process(sparkSession, ds)
+            }
+          }
         }
         case false =>
       }
@@ -167,7 +167,12 @@ object Bronze extends Logging {
       }
       val res: Dataset[Row] = validates.length > 0 match {
         case true => {
-          validates(0).process(sparkSession, model, sparkSession.read.table("bronze_testing_data"))
+          sparkSession.sqlContext.tableNames.contains("bronze_testing_data") match {
+            case true => {
+              validates(0).process(sparkSession, model, sparkSession.read.table("bronze_testing_data"))
+            }
+            case false => validates(0).process(sparkSession, model, ds)
+          }
         }
         case false => sparkSession.emptyDataFrame
       }

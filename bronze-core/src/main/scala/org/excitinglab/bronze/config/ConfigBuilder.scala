@@ -239,7 +239,7 @@ class ConfigBuilder(configFile: String) {
       case _ if name.toLowerCase.endsWith("classifier") => "classification"
       case _ if name.toLowerCase.endsWith("regression") => "regression"
       case _ if name.toLowerCase.endsWith("regressor") => "regression"
-      case _ if name.toLowerCase.endsWith("clustering") => "clustering"
+      case _ if name.toLowerCase.endsWith("cluster") => "clustering"
       case _ => ""
     }
   }

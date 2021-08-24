@@ -59,6 +59,15 @@ Bronze架构于Apache SparkMllib之上的机器学习平台，提供数据接入
 | 梯度提升树   | 1000          | 无限       |
 | 存活分析     | 100万~1000万  | 无限       |
 
+##### 聚类
+
+| 模型        | 建议           | 计算限制              | 训练例子 |
+| ----------- | -------------- | --------------------- | -------- |
+| k-means     | 最大值为50~100 | 特征乘以聚类 < 1000万 | 不限     |
+| 二分k-means | 最大值为50~100 | 特征乘以聚类 < 1000万 | 不限     |
+| GMM         | 最大值为50~100 | 特征乘以聚类 < 1000万 | 不限     |
+| LDA         | 可解释的数字   | 1000个主题            | 不限     |
+
 
 
 ------
@@ -83,7 +92,7 @@ Bronze架构于Apache SparkMllib之上的机器学习平台，提供数据接入
    - VectorSlicer *输入特征向量，输出原始特征向量子集*
    - RFormula *允许在声明式语言指定转换*
    - ChiSqSelector *精简特征向量*
-   
+
    ##### 特征转换(Feature Transforms)
    ###### 特征索引转换
    - StringIndexer *将字符串映射到不同的数字id*
@@ -124,7 +133,7 @@ Bronze架构于Apache SparkMllib之上的机器学习平台，提供数据接入
    - Word2Vec *将词语或者文章转换成词向量*
    - CountVectorizer *类似TF-IDF*
    - FeatureHasher *特征哈希，将原来的N维特征转换为一个M维的特征向量，一般M<N*
-   
+
 #### Train Plugin
   ##### 分类模型
    - LogisticRegression *逻辑回归*
