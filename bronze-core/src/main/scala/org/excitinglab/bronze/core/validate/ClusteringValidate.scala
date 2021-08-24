@@ -1,7 +1,7 @@
 package org.excitinglab.bronze.core.validate
 
 import org.apache.spark.ml.PipelineModel
-import org.apache.spark.ml.clustering.KMeansModel
+import org.apache.spark.ml.clustering.{BisectingKMeansModel, KMeansModel}
 import org.apache.spark.ml.evaluation.ClusteringEvaluator
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
@@ -26,9 +26,17 @@ class ClusteringValidate extends BaseValidate {
     config.getString("modelType") match {
       case "kmeans" => {
         val kMeansModel = model.stages.last.asInstanceOf[KMeansModel]
-        println(">>>Cluster Centers: ")
+        val summary = kMeansModel.summary
+        println(s">>>Cluster Centers count: ${summary.clusterSizes.length}")
         kMeansModel.clusterCenters.foreach(println)
       }
+      case "bisectingkmeans" => {
+        val bisectingKMeansModel = model.stages.last.asInstanceOf[BisectingKMeansModel]
+        val summary = bisectingKMeansModel.summary
+        println(s">>>Cluster Centers count: ${summary.clusterSizes.length}")
+        bisectingKMeansModel.clusterCenters.foreach(println)
+      }
+      case _ =>
     }
 
     println(">>>预测结果: ")
