@@ -12,3 +12,4 @@ org.excitinglab.bronze.core.train.regression.RandomForestRegressor
 org.excitinglab.bronze.core.train.clustering.KMeansCluster
 org.excitinglab.bronze.core.train.clustering.BisectingKMeansCluster
 org.excitinglab.bronze.core.train.clustering.GaussianMixtureCluster
+org.excitinglab.bronze.core.train.recommendation.ALSRecommendation
