@@ -1,5 +1,7 @@
 org.excitinglab.bronze.core.transform.Sample
 org.excitinglab.bronze.core.transform.DropDuplicates
+org.excitinglab.bronze.core.transform.Rename
+org.excitinglab.bronze.core.transform.TypeConvert
 org.excitinglab.bronze.core.transform.Split
 org.excitinglab.bronze.core.transform.Filter
 org.excitinglab.bronze.core.transform.Schema

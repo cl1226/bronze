@@ -8,7 +8,7 @@ import org.excitinglab.bronze.config.{Config, ConfigFactory}
 import scala.collection.JavaConversions._
 
 /**
- * Inputer 缺失值补全
+ * Imputer 缺失值补全
  * 主要作用：对列中的NaN使用中位数或者平均数进行补全
  */
 class Imputer extends BaseTransform {
@@ -24,7 +24,9 @@ class Imputer extends BaseTransform {
     val defaultConfig = ConfigFactory.parseMap(
       Map(
         "inputCol" -> "feature",
-        "outputCol" -> "imputer_feature"
+        "outputCol" -> "imputer_feature",
+        "strategy" -> "mean",  // mean || median || mode
+        "missingValue" -> Double.NaN
       )
     )
     config = config.withFallback(defaultConfig)
@@ -34,6 +36,8 @@ class Imputer extends BaseTransform {
     val imputer = new feature.Imputer()
       .setInputCols(config.getString("inputCol").split(",").map(_.trim))
       .setOutputCols(config.getString("outputCol").split(",").map(_.trim))
+      .setMissingValue(config.getDouble("missingValue"))
+      .setStrategy(config.getString("strategy"))
     imputer.fit(df).transform(df)
   }
 
