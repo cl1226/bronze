@@ -120,7 +120,7 @@ object Bronze extends Logging {
                                validates: List[BaseValidate],
                                outputs: List[BaseOutput]): Unit = {
 
-    basePrepare(sparkSession, staticInputs, transforms, trains, models, outputs)
+    basePrepare(sparkSession, staticInputs, transforms, trains, models, validates, outputs)
 
     // when you see this ASCII logo, bronze is really started.
     showBronzeAsciiLogo()

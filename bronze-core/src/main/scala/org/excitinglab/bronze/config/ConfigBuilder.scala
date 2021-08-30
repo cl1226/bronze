@@ -240,6 +240,7 @@ class ConfigBuilder(configFile: String) {
       case _ if name.toLowerCase.endsWith("regression") => "regression"
       case _ if name.toLowerCase.endsWith("regressor") => "regression"
       case _ if name.toLowerCase.endsWith("cluster") => "clustering"
+      case _ if name.toLowerCase.endsWith("recommendation") => "recommendation"
       case _ => ""
     }
   }

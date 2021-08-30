@@ -1,6 +1,5 @@
 package org.excitinglab.bronze.core.train.recommendation
 
-import org.apache.spark.ml.clustering.BisectingKMeans
 import org.apache.spark.ml.recommendation.ALS
 import org.apache.spark.ml.{Pipeline, PipelineModel, PipelineStage}
 import org.apache.spark.sql.{Dataset, Row, SparkSession}

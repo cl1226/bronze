@@ -7,38 +7,58 @@ import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.excitinglab.bronze.apis.BaseValidate
 import org.excitinglab.bronze.config.{Config, ConfigFactory}
 
+import scala.collection.JavaConversions._
+
 class RegressionValidate extends BaseValidate {
 
   var config: Config = ConfigFactory.empty()
+
+  /**
+   * Prepare before running, do things like set config default value, add broadcast variable, accumulator.
+   */
+  override def prepare(spark: SparkSession): Unit = {
+    super.prepare(spark)
+
+    val defaultConfig = ConfigFactory.parseMap(
+      Map(
+        "labelCol" -> "label",
+        "predictionCol" -> "prediction",
+        "metricName" -> "rmse",
+        "showDebugString" -> false
+      )
+    )
+    config = config.withFallback(defaultConfig)
+  }
 
   override def process(spark: SparkSession, model: PipelineModel, df: Dataset[Row]): Dataset[Row] = {
 
     val predictions = model.transform(df)
 
     val evaluator = new RegressionEvaluator()
-      .setLabelCol("label")
-      .setPredictionCol("prediction")
-      .setMetricName("rmse")
+      .setLabelCol(config.getString("labelCol"))
+      .setPredictionCol(config.getString("predictionCol"))
+      .setMetricName(config.getString("metricName"))
 
     val rmse = evaluator.evaluate(predictions)
     println(s">>>Root Mean Squared Error (RMSE) on test data = $rmse")
 
-    config.getString("modelType") match {
-      case "GBTRegression" => {
-        val gbtModel = model.stages.last.asInstanceOf[GBTRegressionModel]
-        println(s">>>Learned regression GBT model:\n ${gbtModel.toDebugString}")
+    if (config.getBoolean("showDebugString")) {
+      config.getString("modelType") match {
+        case "GBTRegression" => {
+          val gbtModel = model.stages.last.asInstanceOf[GBTRegressionModel]
+          println(s">>>Learned regression GBT model:\n ${gbtModel.toDebugString}")
+        }
+        case "decisionTreeRegression" => {
+          val dtrModel = model.stages.last.asInstanceOf[DecisionTreeRegressionModel]
+          println(s">>>Learned regression tree model:\n ${dtrModel.toDebugString}")
+        }
+        case "RandomForestRegressor" => {
+          val rfr = model.stages.last.asInstanceOf[RandomForestRegressionModel]
+          println(s">>>Learned regression tree model:\n ${rfr.toDebugString}")
+        }
+        case _ =>
       }
-      case "decisionTreeRegression" => {
-        val dtrModel = model.stages.last.asInstanceOf[DecisionTreeRegressionModel]
-        println(s">>>Learned regression tree model:\n ${dtrModel.toDebugString}")
-      }
-      case "RandomForestRegressor" => {
-        val rfr = model.stages.last.asInstanceOf[RandomForestRegressionModel]
-        println(s">>>Learned regression tree model:\n ${rfr.toDebugString}")
-      }
-      case _ =>
     }
-
 
     println(">>>预测结果: ")
     predictions
