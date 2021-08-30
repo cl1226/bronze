@@ -87,11 +87,17 @@ Bronze架构于Apache SparkMllib之上的机器学习平台，提供数据接入
    - Sql *通过sql方式操作数据集*
    - LabeledPoint *生成标注点*
    - Split *数据集切分为训练集、测试集*
+   - TypeConvert *类型转换*
+   - Rename *列值重命名*
+   - Sample *抽样*
    ##### 特征选择(Feature Selections)
 >在特征向量中选择出那些”优秀“的特征，组成新的、更”精简“的特征向量的过程。
-   - VectorSlicer *输入特征向量，输出原始特征向量子集*
-   - RFormula *允许在声明式语言指定转换*
-   - ChiSqSelector *精简特征向量*
+
+- VectorSlicer *输入特征向量，输出原始特征向量子集*
+
+- RFormula *允许在声明式语言指定转换*
+
+- ChiSqSelector *精简特征向量*
 
    ##### 特征转换(Feature Transforms)
    ###### 特征索引转换
@@ -139,15 +145,33 @@ Bronze架构于Apache SparkMllib之上的机器学习平台，提供数据接入
    - LogisticRegression *逻辑回归*
    - DecisionTree *决策树*
    - RandomForest *随机森林*
+   - GBT *梯度提升树*
+   - LinearSVC *线性支持向量机*
+   - NaiveBayes *朴素贝叶斯*
   ##### 回归模型
    - LinearRegression *线性回归*
    - GBTRegressor *梯度提升树回归*
+   - DecisionTree *决策树*
+   - GeneralizedLinearRegression *广义线性回归*
+   - RandomForest *随机森林*
+
+##### 聚类模型
+
+ - Kmeans
+ - BisectingKMeans *二分k-means*
+ - GaussianMixture *GMM*
+
+##### 推荐系统
+
+ - ALS *交替最小二乘法*
 
 #### Test Plugin
    - BinaryClassificationValidate *二分类模型验证*
    - MultiClassificationValidate *多分类模型验证*
    - LinearRegressionValidate *线性回归模型验证*
+   - GeneralizedLinearRegressionValidate *广义线性回归模型验证*
    - RegressionValidate *通用回归模型验证*
+   - ClusteringValidate *聚类模型验证*
 
 #### Output Plugin
 
