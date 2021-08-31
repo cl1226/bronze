@@ -5,6 +5,8 @@ import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.excitinglab.bronze.apis.BaseTransform
 import org.excitinglab.bronze.config.{Config, ConfigFactory}
 
+import scala.collection.JavaConversions._
+
 /**
  * MinMaxScaler 最小值最大值缩放
  * 将向量中的值基于给定的最小值和最大值按比例缩放。
@@ -14,14 +16,29 @@ class MinMaxScaler extends BaseTransform {
 
   var config: Config = ConfigFactory.empty()
 
+  /**
+   * Prepare before running, do things like set config default value, add broadcast variable, accumulator.
+   */
+  override def prepare(spark: SparkSession): Unit = {
+    super.prepare(spark)
+
+    val defaultConfig = ConfigFactory.parseMap(
+      Map(
+        "min" -> 0.0,
+        "max" -> 1.0,
+        "inputCol" -> "features",
+        "outputCol" -> "scaledFeatures"
+      )
+    )
+    config = config.withFallback(defaultConfig)
+  }
+
   override def process(spark: SparkSession, df: Dataset[Row]): Dataset[Row] = {
     val minMaxScaler = new feature.MinMaxScaler()
     minMaxScaler.setMin(config.getDouble("min"))
       .setMax(config.getDouble("max"))
       .setInputCol(config.getString("inputCol"))
-    if (config.hasPath("outputCol")) {
-      minMaxScaler.setOutputCol(config.getString("outputCol"))
-    }
+      .setOutputCol(config.getString("outputCol"))
 
     minMaxScaler.fit(df).transform(df)
   }
@@ -39,24 +56,5 @@ class MinMaxScaler extends BaseTransform {
   /**
    * Return true and empty string if config is valid, return false and error message if config is invalid.
    */
-  override def checkConfig(): (Boolean, String) = {
-    val requiredOptions = List("min", "max", "inputCol")
-    val nonExistsOptions = requiredOptions.map(optionName => (optionName, config.hasPath(optionName))).filter { p =>
-      val (optionName, exists) = p
-      !exists
-    }
-    if (nonExistsOptions.nonEmpty) {
-      (
-        false,
-        "please specify " + nonExistsOptions
-          .map { option =>
-            val (name, exists) = option
-            "[" + name + "]"
-          }
-          .mkString(", ") + " as non-empty string"
-      )
-    } else {
-      (true, "")
-    }
-  }
+  override def checkConfig(): (Boolean, String) = (true, "")
 }
