@@ -34,7 +34,14 @@ class LinearRegression extends BaseTrain {
         "regParam" -> 0.0,
         "elasticNetParam" -> 0.0,
         "maxIter" -> 100,
-        "tol" -> 1E-6
+        "tol" -> 1E-6,
+        "solver" -> "auto",
+        "aggregationDepth" -> 2,
+        "epsilon" -> 1.35,
+        "maxBlockSizeInMB" -> 0.0,
+        "fitIntercept" -> true,
+        "standardization" -> true,
+        "loss" -> "squaredError"  // squaredError(default) | huber
       )
     )
     config = config.withFallback(defaultConfig)
@@ -49,6 +56,12 @@ class LinearRegression extends BaseTrain {
       .setElasticNetParam(config.getDouble("elasticNetParam"))
       .setMaxIter(config.getInt("maxIter"))
       .setTol(config.getDouble("tol"))
+      .setFitIntercept(config.getBoolean("fitIntercept"))
+      .setStandardization(config.getBoolean("standardization"))
+      .setLoss(config.getString("loss"))
+      .setSolver(config.getString("solver"))
+      .setAggregationDepth(config.getInt("aggregationDepth"))
+      .setEpsilon(config.getDouble("epsilon"))
 
     if (config.hasPath("printParams") && config.getBoolean("printParams")) {
       println(">>>[INFO] 模型参数: ")
