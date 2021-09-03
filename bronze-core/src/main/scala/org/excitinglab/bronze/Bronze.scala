@@ -213,9 +213,7 @@ object Bronze extends Logging {
 
     basePrepare(sparkSession, staticInputs, streamingInputs, outputs)
 
-    // let static input register as table for later use if needed
-    registerInputTempView(staticInputs, sparkSession)
-    // when you see this ASCII logo, scistor is really started.
+    // when you see this ASCII logo, bronze is really started.
     showBronzeAsciiLogo()
 
     val streamingInput = streamingInputs(0)
