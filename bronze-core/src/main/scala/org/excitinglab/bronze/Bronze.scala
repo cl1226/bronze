@@ -7,7 +7,9 @@ import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.excitinglab.bronze.config._
 import org.apache.hadoop.fs.Path
 import org.apache.spark.ml.PipelineModel
-import org.excitinglab.bronze.apis.{BaseModel, BaseOutput, BasePredicate, BaseStaticInput, BaseTrain, BaseTransform, BaseValidate, Plugin}
+import org.apache.spark.storage.StorageLevel
+import org.apache.spark.streaming.{Seconds, StreamingContext}
+import org.excitinglab.bronze.apis.{BaseModel, BaseOutput, BasePredicate, BaseStaticInput, BaseStreamingInput, BaseTrain, BaseTransform, BaseValidate, Plugin}
 import org.excitinglab.bronze.utils.{AsciiArt, CompressionUtils}
 
 import java.io.File
@@ -101,7 +103,7 @@ object Bronze extends Logging {
     baseCheckConfig(staticInputs, streamingInputs, transforms, trains, models, validates, predicates, outputs)
 
     if (streamingInputs.nonEmpty) {
-//      streamingProcessing(sparkSession, configBuilder, staticInputs, streamingInputs, transforms, outputs)
+      streamingProcessing(sparkSession, configBuilder, staticInputs, streamingInputs, transforms, predicates, outputs)
     } else {
       batchProcessing(sparkSession, configBuilder, staticInputs, transforms, trains, models, validates, predicates, outputs)
     }
@@ -111,7 +113,7 @@ object Bronze extends Logging {
   /**
    * Batch Processing
    * */
-  private def batchProcessing(
+  private[bronze] def batchProcessing(
                                sparkSession: SparkSession,
                                configBuilder: ConfigBuilder,
                                staticInputs: List[BaseStaticInput],
@@ -193,6 +195,56 @@ object Bronze extends Logging {
     } else {
       throw new ConfigRuntimeException("Input must be configured at least once.")
     }
+  }
+
+  /**
+   * Streaming Processing
+   */
+  private[bronze] def streamingProcessing(sparkSession: SparkSession,
+                                          configBuilder: ConfigBuilder,
+                                          staticInputs: List[BaseStaticInput],
+                                          streamingInputs: List[BaseStreamingInput[Any]],
+                                          transforms: List[BaseTransform],
+                                          predicates: List[BasePredicate],
+                                          outputs: List[BaseOutput]
+                                         ): Unit = {
+    val batchDuration = configBuilder.getSparkConfigs.getLong("batchDuration")
+    val ssc = new StreamingContext(sparkSession.sparkContext, Seconds(batchDuration))
+
+    basePrepare(sparkSession, staticInputs, streamingInputs, outputs)
+
+    // let static input register as table for later use if needed
+    registerInputTempView(staticInputs, sparkSession)
+    // when you see this ASCII logo, scistor is really started.
+    showBronzeAsciiLogo()
+
+    val streamingInput = streamingInputs(0)
+    streamingInput.start(
+      sparkSession,
+      ssc,
+      dataset => {
+        var ds = dataset
+
+        if (ds.count() > 0) {
+
+          transforms.foreach(transform => {
+            ds = transform.process(sparkSession, ds)
+          })
+
+          predicates.foreach(p => {
+            ds = p.process(sparkSession, ds)
+          })
+
+          outputs.foreach(output => {
+            outputProcess(sparkSession, output, ds)
+          })
+        } else {
+          logInfo(s"consumer 0 record!")
+        }
+      }
+    )
+    ssc.start()
+    ssc.awaitTermination()
   }
 
   private[bronze] def showBronzeAsciiLogo(): Unit = {
