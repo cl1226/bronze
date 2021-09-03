@@ -17,11 +17,11 @@ object TestLinearRegressionPredict {
 
     spark.sparkContext.setLogLevel("error")
 
-    val model: PipelineModel = PipelineModel.load("hdfs://node02:9000/ml/model/linearRegression")
+    val model: PipelineModel = PipelineModel.load("hdfs://node02:9000/ml/model/linearRegression/")
 
     import spark.implicits._
     val df = spark.createDataset(Seq(
-      LabeledPoint(10, Vectors.dense(700))
+      LabeledPoint(0, Vectors.dense(700))
     ))
 
     val frame = model.transform(df)

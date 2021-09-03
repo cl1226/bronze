@@ -7,7 +7,7 @@ import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.excitinglab.bronze.config._
 import org.apache.hadoop.fs.Path
 import org.apache.spark.ml.PipelineModel
-import org.excitinglab.bronze.apis.{BaseModel, BaseOutput, BaseStaticInput, BaseTrain, BaseTransform, BaseValidate, Plugin}
+import org.excitinglab.bronze.apis.{BaseModel, BaseOutput, BasePredicate, BaseStaticInput, BaseTrain, BaseTransform, BaseValidate, Plugin}
 import org.excitinglab.bronze.utils.{AsciiArt, CompressionUtils}
 
 import java.io.File
@@ -93,16 +93,17 @@ object Bronze extends Logging {
     val streamingInputs = configBuilder.createStreamingInputs("batch")
     val transforms = configBuilder.createTransforms
     val trains = configBuilder.createTrains
-    val validates = configBuilder.createValidates
     val models = configBuilder.createModels
+    val validates = configBuilder.createValidates
+    val predicates = configBuilder.createPredicates
     val outputs = configBuilder.createOutputs[BaseOutput]("batch")
 
-    baseCheckConfig(staticInputs, streamingInputs, transforms, trains, models, validates, outputs)
+    baseCheckConfig(staticInputs, streamingInputs, transforms, trains, models, validates, predicates, outputs)
 
     if (streamingInputs.nonEmpty) {
 //      streamingProcessing(sparkSession, configBuilder, staticInputs, streamingInputs, transforms, outputs)
     } else {
-      batchProcessing(sparkSession, configBuilder, staticInputs, transforms, trains, models, validates, outputs)
+      batchProcessing(sparkSession, configBuilder, staticInputs, transforms, trains, models, validates, predicates, outputs)
     }
 
   }
@@ -118,9 +119,10 @@ object Bronze extends Logging {
                                trains: List[BaseTrain],
                                models: List[BaseModel],
                                validates: List[BaseValidate],
+                               predicates: List[BasePredicate],
                                outputs: List[BaseOutput]): Unit = {
 
-    basePrepare(sparkSession, staticInputs, transforms, trains, models, validates, outputs)
+    basePrepare(sparkSession, staticInputs, transforms, trains, models, validates, predicates, outputs)
 
     // when you see this ASCII logo, bronze is really started.
     showBronzeAsciiLogo()
@@ -165,7 +167,8 @@ object Bronze extends Logging {
         case true => models(0).process(sparkSession, model)
         case false =>
       }
-      val res: Dataset[Row] = validates.length > 0 match {
+      var res: Dataset[Row] = sparkSession.emptyDataFrame
+      res = validates.length > 0 match {
         case true => {
           sparkSession.sqlContext.tableNames.contains("bronze_testing_data") match {
             case true => {
@@ -174,8 +177,12 @@ object Bronze extends Logging {
             case false => validates(0).process(sparkSession, model, ds)
           }
         }
-        case false => sparkSession.emptyDataFrame
+        case false => ds
       }
+
+      predicates.foreach(p => {
+        res = p.process(sparkSession, res)
+      })
 
       outputs.foreach(p => {
         outputProcess(sparkSession, p, res)

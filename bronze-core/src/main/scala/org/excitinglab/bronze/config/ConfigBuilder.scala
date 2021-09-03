@@ -1,6 +1,6 @@
 package org.excitinglab.bronze.config
 
-import org.excitinglab.bronze.apis.{BaseModel, BaseOutput, BaseStaticInput, BaseStreamingInput, BaseTrain, BaseTransform, BaseValidate, Plugin}
+import org.excitinglab.bronze.apis.{BaseModel, BaseOutput, BasePredicate, BaseStaticInput, BaseStreamingInput, BaseTrain, BaseTransform, BaseValidate, Plugin}
 
 import java.io.File
 import java.util.ServiceLoader
@@ -54,6 +54,7 @@ class ConfigBuilder(configFile: String) {
     val trains = this.createTrains
     val models = this.createModels
     val validates = this.createValidates
+    val predicate = this.createPredicates
   }
 
   def getSparkConfigs: Config = {
@@ -201,6 +202,27 @@ class ConfigBuilder(configFile: String) {
     validateList
   }
 
+  def createPredicates: List[BasePredicate] = {
+
+    var predicateList = List[BasePredicate]()
+    config
+      .getConfigList("predicate")
+      .foreach(plugin => {
+        val className = buildClassFullQualifier(plugin.getString(ConfigBuilder.PluginNameKey), "predicate")
+
+        val obj = Class
+          .forName(className)
+          .newInstance()
+          .asInstanceOf[BasePredicate]
+
+        obj.setConfig(plugin)
+
+        predicateList = predicateList :+ obj
+      })
+
+    predicateList
+  }
+
   def createModels: List[BaseModel] = {
 
     var modelList = List[BaseModel]()
@@ -263,6 +285,7 @@ class ConfigBuilder(configFile: String) {
         case "train" => ConfigBuilder.TrainPackage + "." + getTrainType(name)
         case "model" => ConfigBuilder.ModelPackage
         case "validate" => ConfigBuilder.ValidatePackage
+        case "predicate" => ConfigBuilder.PredicatePackage
         case "output" => ConfigBuilder.OutputPackage + "." + engine
       }
 
@@ -273,6 +296,7 @@ class ConfigBuilder(configFile: String) {
           (ServiceLoader load classOf[BaseTrain]).asScala ++
           (ServiceLoader load classOf[BaseModel]).asScala ++
           (ServiceLoader load classOf[BaseValidate]).asScala ++
+          (ServiceLoader load classOf[BasePredicate]).asScala ++
           (ServiceLoader load classOf[BaseOutput]).asScala
 
       var classFound = false
@@ -304,6 +328,7 @@ object ConfigBuilder {
   val TrainPackage = PackagePrefix + ".train"
   val ModelPackage = PackagePrefix + ".model"
   val ValidatePackage = PackagePrefix + ".validate"
+  val PredicatePackage = PackagePrefix + ".predicate"
 
   val PluginNameKey = "plugin_name"
 }
