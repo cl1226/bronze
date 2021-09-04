@@ -15,16 +15,31 @@ class TypeConvert extends BaseTransform {
   var config: Config = ConfigFactory.empty()
 
   override def process(spark: SparkSession, df: Dataset[Row]): Dataset[Row] = {
-    val originCol = config.getString("originCol")
+    var colNames = config.getString("colNames")
+    if (colNames.equals("*")) {
+      colNames = df.columns.mkString(",")
+    }
     val newType = config.getString("newType")
 
     newType match {
-      case "string" => df.withColumn(originCol, col(originCol).cast(StringType))
-      case "integer" => df.withColumn(originCol, col(originCol).cast(IntegerType))
-      case "double" => df.withColumn(originCol, col(originCol).cast(DoubleType))
-      case "float" => df.withColumn(originCol, col(originCol).cast(FloatType))
-      case "long" => df.withColumn(originCol, col(originCol).cast(LongType))
-      case "boolean" => df.withColumn(originCol, col(originCol).cast(BooleanType))
+      case "string" => {
+        df.select(colNames.split(",").map(_.trim).map(n => col(n).cast(StringType)): _*)
+      }
+      case "integer" => {
+        df.select(colNames.split(",").map(_.trim).map(n => col(n).cast(IntegerType)): _*)
+      }
+      case "double" => {
+        df.select(colNames.split(",").map(_.trim).map(n => col(n).cast(DoubleType)): _*)
+      }
+      case "float" => {
+        df.select(colNames.split(",").map(_.trim).map(n => col(n).cast(FloatType)): _*)
+      }
+      case "long" => {
+        df.select(colNames.split(",").map(_.trim).map(n => col(n).cast(LongType)): _*)
+      }
+      case "boolean" => {
+        df.select(colNames.split(",").map(_.trim).map(n => col(n).cast(BooleanType)): _*)
+      }
       case _: String => df
     }
   }
@@ -43,7 +58,7 @@ class TypeConvert extends BaseTransform {
    * Return true and empty string if config is valid, return false and error message if config is invalid.
    */
   override def checkConfig(): (Boolean, String) = {
-    val requiredOptions = List("originCol", "newType")
+    val requiredOptions = List("colNames", "newType")
     val nonExistsOptions = requiredOptions.map(optionName => (optionName, config.hasPath(optionName))).filter { p =>
       val (optionName, exists) = p
       !exists

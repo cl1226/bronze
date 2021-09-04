@@ -23,7 +23,7 @@ class RegressionValidate extends BaseValidate {
       Map(
         "labelCol" -> "label",
         "predictionCol" -> "prediction",
-        "metricName" -> "rmse",
+        "metricName" -> "mse,mae,rmse,r2",
         "showDebugString" -> false
       )
     )
@@ -33,14 +33,17 @@ class RegressionValidate extends BaseValidate {
   override def process(spark: SparkSession, model: PipelineModel, df: Dataset[Row]): Dataset[Row] = {
 
     val predictions = model.transform(df)
-
-    val evaluator = new RegressionEvaluator()
-      .setLabelCol(config.getString("labelCol"))
-      .setPredictionCol(config.getString("predictionCol"))
-      .setMetricName(config.getString("metricName"))
-
-    val rmse = evaluator.evaluate(predictions)
-    println(s">>>Root Mean Squared Error (RMSE) on test data = $rmse")
+    config.getString("metricName")
+      .split(",")
+      .map(_.trim)
+      .map(m => {
+        val evaluator = new RegressionEvaluator()
+          .setLabelCol(config.getString("labelCol"))
+          .setPredictionCol(config.getString("predictionCol"))
+          .setMetricName(m)
+        val predict = evaluator.evaluate(predictions)
+        println(s">>>${m.toUpperCase}: $predict")
+      })
 
     if (config.getBoolean("showDebugString")) {
       config.getString("modelType") match {
