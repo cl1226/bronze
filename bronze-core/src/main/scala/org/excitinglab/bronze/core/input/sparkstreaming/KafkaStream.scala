@@ -11,7 +11,6 @@ import org.excitinglab.bronze.apis.BaseStreamingInput
 import org.excitinglab.bronze.config.{Config, ConfigFactory}
 import org.excitinglab.bronze.core.input.sparkstreaming.kafkaStreamProcess.{AvroStreamProcess, CsvStreamProcess, JsonStreamProcess}
 
-import java.util
 import java.util.Properties
 import scala.collection.JavaConversions._
 
@@ -37,7 +36,7 @@ class KafkaStream extends BaseStreamingInput[ConsumerRecord[String, AnyRef]]{
    * Return true and empty string if config is valid, return false and error message if config is invalid.
    */
   override def checkConfig(): (Boolean, String) = {
-    val requiredOptions = List("url", "topic")
+    val requiredOptions = List("servers", "topic")
     val nonExistsOptions = requiredOptions
       .map(optionName => (optionName, config.hasPath(optionName)))
       .filter { p =>
@@ -66,10 +65,10 @@ class KafkaStream extends BaseStreamingInput[ConsumerRecord[String, AnyRef]]{
     config = config.withFallback(defaultConfig)
 
     val props = new Properties()
-    props.setProperty("format", config.getString("dataFormatType"))
+    props.setProperty("format", config.getString("format"))
     props.setProperty("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
     props.setProperty("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-    props.setProperty("bootstrap.servers", config.getString("url"))
+    props.setProperty("bootstrap.servers", config.getString("servers"))
     props.setProperty("group.id", config.getString("groupId"))
     props.setProperty("enable.auto.commit", config.getString("autoCommit"))
 
@@ -92,7 +91,7 @@ class KafkaStream extends BaseStreamingInput[ConsumerRecord[String, AnyRef]]{
   override def start(spark: SparkSession, ssc: StreamingContext, handler: Dataset[Row] => Unit): Unit = {
     val inputDStream = getDStream(ssc)
 
-    val handlerInstance: KafkaStream = config.getString("dataFormatType").toUpperCase match {
+    val handlerInstance: KafkaStream = config.getString("format").toUpperCase match {
       case "JSON" => new JsonStreamProcess(config)
       case "CSV" => new CsvStreamProcess(config)
       case "AVRO" => new AvroStreamProcess(config)

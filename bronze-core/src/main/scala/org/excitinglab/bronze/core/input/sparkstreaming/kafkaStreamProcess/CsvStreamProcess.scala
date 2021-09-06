@@ -7,8 +7,6 @@ import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.excitinglab.bronze.config.Config
 import org.excitinglab.bronze.core.input.sparkstreaming.KafkaStream
 
-import scala.collection.mutable
-
 class CsvStreamProcess(config: Config) extends KafkaStream {
 
   override def rdd2dataset(spark: SparkSession, rdd: RDD[ConsumerRecord[String, AnyRef]]): Dataset[Row] = {
@@ -29,6 +27,7 @@ class CsvStreamProcess(config: Config) extends KafkaStream {
 
     val df = spark.read
       .schema(schema)
+      .option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ")
       .csv(spark.createDataset(transformedRDD))
 
     df

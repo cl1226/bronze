@@ -48,7 +48,7 @@ class ConfigBuilder(configFile: String) {
   def checkConfig: Unit = {
     val sparkConfig = this.getSparkConfigs
     val staticInput = this.createStaticInputs("batch")
-    val streamingInputs = this.createStreamingInputs("streaming")
+    val streamingInputs = this.createStreamingInputs("batch")
     val outputs = this.createOutputs[BaseOutput]("batch")
     val transforms = this.createTransforms
     val trains = this.createTrains

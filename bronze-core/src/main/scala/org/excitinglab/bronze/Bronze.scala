@@ -234,6 +234,7 @@ object Bronze extends Logging {
           })
 
           outputs.foreach(output => {
+            println(">>>[INFO] result: ")
             outputProcess(sparkSession, output, ds)
           })
         } else {
