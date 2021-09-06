@@ -37,6 +37,10 @@ class LinearRegressionValidate extends BaseValidate {
     println(">>>objective history: 目标历史，记录了每次迭代训练的情况")
     println(s"[${summary.objectiveHistory.mkString(",")}]")
 
+    // Print the coefficients and intercept for linear regression
+    println(s">>>Coefficients[系数]: ${linearRegressionModel.coefficients}")
+    println(s">>>Intercept[截距]: ${linearRegressionModel.intercept}")
+
     println(">>>MSE: 均方误差(mean squared error)")
     println(s"${summary.meanSquaredError}")
 
