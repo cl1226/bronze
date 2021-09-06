@@ -50,7 +50,7 @@ class LinearRegressionValidate extends BaseValidate {
     println(">>>MAE: 平均绝对值误差(mean absolute error)")
     println(s"${summary.meanAbsoluteError}")
 
-    println(">>>r2: R方(R-squared)[0~1之前,1表示模型拟合度好,0表示模型无拟合度,负数表示模型非常差]")
+    println(">>>r2: R方(R-squared)[0~1之间,1表示模型拟合度好,0表示模型无拟合度,负数表示模型非常差]")
     println(s"${summary.r2}")
 
     println(">>>预测结果: ")
